@@ -11,3 +11,11 @@ target/
 *.iws
 *.iml
 *.ipr
+
+### Dependencies ###
+/src/main/resources/yt-dlp.exe
+/src/main/resources/FFmpeg/
+
+### Images ###
+/src/main/resources/MCytDISC_logo.png
+/src/main/resources/MCytDISC_square_logo.png

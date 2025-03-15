@@ -24,7 +24,7 @@ The plugin and resource pack are available for download in the **releases** fold
 - a **Bukkit / Spigot / (maybe Paper) Minecraft server**
 - a **personal web server** hosting the resource pack that allows:
   - the plugin to have access from an absolute path to the resource pack to edit it;
-  - players to have access to the resource pack (musics / custom music discs) / real-time updates.
+  - players to have access to the resource pack and real-time updates (musics / custom music discs).
 - **yt-dlp** to download an MP3 audio file from a YouTube URL
 - **FFmpeg** to convert MP3 format to Ogg format
 
