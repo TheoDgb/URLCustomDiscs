@@ -4,7 +4,7 @@ Last updated on March 15, 2025.
 <br>
 
 ### Description
-This plugin (+ resource pack) allows you to create and play custom discs from YouTube URLs on your server, directly in-game, without having to modify the resource pack files required to work.
+This plugin (+ resource pack) allows you to create and play custom music discs from YouTube URLs on your server, directly in-game, without having to modify the resource pack files required to work.
 The plugin supports Minecraft's spatial audio for music. You can also play it in stereo.
 
 Additionally, Vanilla commands such as `/playsound` and `/stopsound` work with the custom music, so you do not need to use a jukebox.
@@ -19,7 +19,7 @@ Note: plugin tested on spigot server 1.21.0
 - a **Bukkit / Spigot / (maybe Paper) Minecraft server**
 - a **personal web server** hosting the resource pack that allows:
   - the plugin to have access from an absolute path to the resource pack to edit it;
-  - players to have access to the resource pack (musics / custom discs) / real-time updates.
+  - players to have access to the resource pack (musics / custom music discs) / real-time updates.
 - **yt-dlp** to download an MP3 audio file from a YouTube URL
 - **FFmpeg** to convert MP3 format to Ogg format
 
@@ -83,14 +83,14 @@ Here is a tutorial to create an Apache server on Windows:
 <br>
 
 ### Is Everything Working Fine ?
-You should automatically receive the resource pack when you join the server and should experience automatic resource pack updates when a custom disc is created.
+You should automatically receive the resource pack when you join the server and should experience automatic resource pack updates when a custom music disc is created.
 
 If you do not receive the resource pack, check:
 - that you can download the resource pack from the URL on your personal web server;
 - that you have correctly entered the download URL of the resource pack from your personal web server in server.properties;
 - that you have correctly configured the absolute path and download URL for the resource pack in config.yml.
 
-If you can't create a custom disc, check:
+If you can't create a custom music disc, check:
 - the configuration of the absolute path of the resource pack in config.yml;
 - the installation of yt-dlp and FFmpeg.
 
@@ -107,8 +107,8 @@ your_server_folder/
 │   └── lib/...
 ├── plugins/                    (create it if not already done)
 │   ├── MCytDISC/               (automatically created when the plugin is loaded, plugin folder)
-│   │   ├── music/              (automatically created when creating a custom disc, used to download and convert YouTube music to Ogg)
-│   │   ├── discs.json          (automatically created when creating a custom disc, stores information about custom discs)
+│   │   ├── music/              (automatically created when creating a custom music disc, used to download and convert YouTube music to Ogg)
+│   │   ├── discs.json          (automatically created when creating a custom music disc, stores information about custom music discs)
 │   │   └── config.yml          (automatically created when the plugin is loaded, allows you to configure the resource pack server)
 │   └── MCytDISC-1.0-1.21.0.jar (download the MCytDISC plugin)
 ├── yt-dlp.exe
@@ -122,15 +122,15 @@ MCytDiscPack.zip/
 │   └── minecraft/
 │       ├── models/
 │       │   └── item/
-│       │       ├── music_disc_13.json ("overrides" added on disc 13 to assign custom disc models using custom_model_data)
-│       │       └── custom_disc_example.json (custom disc models automatically created) 
+│       │       ├── music_disc_13.json ("overrides" added on disc 13 to assign custom music disc models using custom_model_data)
+│       │       └── custom_music_disc_example.json (custom music disc models automatically created) 
 │       ├── sounds/
 │       │   └── custom/
-│       │       └── (custom disc tracks are saved here)
+│       │       └── (custom music disc tracks are saved here)
 │       ├── textures/
 │       │   └── item/
-│       │       └── record_custom.png (custom discs texture)
-│       └── sounds.json (tracks automatically associated with custom discs)
+│       │       └── record_custom.png (custom music discs texture)
+│       └── sounds.json (tracks automatically associated with custom music discs)
 └── pack.mcmeta
 ```
 
@@ -139,18 +139,18 @@ MCytDiscPack.zip/
 ### Commands Overview
 Display the list of commands:<br>
 `/mcytdisc help`<br><br>
-Create a custom disc from a YouTube URL:<br>
+Create a custom music disc from a YouTube URL:<br>
 `/mcytdisc create <URL> <disc name> <mono/stereo>`
 - mono: enables spatial audio (like played in a jukebox)
 - stereo: plays the sound in the traditional way
 
-Give a custom disc:<br>
+Give a custom music disc:<br>
 `/mcytdisc give <disc name>`<br><br>
-Display custom discs list (you can give yourself a disc directly by clicking on its name in the chat):<br>
+Display custom music discs list (you can give yourself a disc directly by clicking on its name in the chat):<br>
 `/mcytdisc list`<br><br>
-Delete a custom disc:<br>
+Delete a custom music disc:<br>
 `/mcytdisc delete <disc name>`<br><br>
-Display custom disc details in hand (used for debugging):<br>
+Display custom music disc details in hand (used for debugging):<br>
 `/mcytdisc info`
 
 <br>

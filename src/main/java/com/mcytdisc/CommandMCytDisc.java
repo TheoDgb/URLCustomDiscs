@@ -60,21 +60,21 @@ public class CommandMCytDisc implements CommandExecutor {
             player.sendMessage("");
             player.sendMessage(ChatColor.YELLOW + "Usage of the command " + ChatColor.GOLD + "/mcytdisc:");
             player.sendMessage("");
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Create a custom disc from a YouTube URL:");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Create a custom music disc from a YouTube URL:");
             player.sendMessage(ChatColor.YELLOW + "/mcytdisc create " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "URL" + ChatColor.GOLD + "> <" + ChatColor.YELLOW + "disc name" + ChatColor.GOLD + "> <" + ChatColor.YELLOW + "mono " + ChatColor.GOLD + "/ " + ChatColor.YELLOW + "stereo" + ChatColor.GOLD + ">");
             player.sendMessage(ChatColor.GRAY + "- mono: enables spatial audio (like played in a jukebox)");
             player.sendMessage(ChatColor.GRAY + "- stereo: plays the sound in the traditional way");
             player.sendMessage("");
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Give a custom disc:");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Give a custom music disc:");
             player.sendMessage(ChatColor.YELLOW + "/mcytdisc give " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "disc name" + ChatColor.GOLD + ">");
             player.sendMessage("");
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Display custom discs list:");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Display custom music discs list:");
             player.sendMessage(ChatColor.YELLOW + "/mcytdisc list");
             player.sendMessage("");
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Delete a custom disc:");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Delete a custom music disc:");
             player.sendMessage(ChatColor.YELLOW + "/mcytdisc delete " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "disc name" + ChatColor.GOLD + ">");
             player.sendMessage("");
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Display custom disc details in hand:");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Display custom music disc details in hand:");
             player.sendMessage(ChatColor.YELLOW + "/mcytdisc info");
             player.sendMessage("");
             player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Other useful (vanilla) command:");
@@ -188,7 +188,7 @@ public class CommandMCytDisc implements CommandExecutor {
                         updateSoundsJson(discName);
 
                         // Créer et donner le disque personnalisé au joueur
-                        createCustomDisc(player, discName, displayName);
+                        createCustomMusicDisc(player, discName, displayName);
 
                         // Parcourir tous les joueurs en ligne et leur envoyer le pack de ressources
                         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
@@ -208,7 +208,7 @@ public class CommandMCytDisc implements CommandExecutor {
         // Commande pour se give un disque existant
         if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
             String discName = args[1].toLowerCase().replaceAll(" ", "_");
-            giveCustomDisc(player, discName);
+            giveCustomMusicDisc(player, discName);
             return true;
         }
 
@@ -217,10 +217,10 @@ public class CommandMCytDisc implements CommandExecutor {
             JSONObject discData = DiscUtils.loadDiscData(discUuidFile);
 
             if (discData.isEmpty()) {
-                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "No custom disc found. Create a disc first (/mcytdisc help).");
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "No custom music disc found. Create a disc first (/mcytdisc help).");
                 return true;
             }
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "List of custom discs:");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "List of custom music discs:");
 
             // Trier les noms des disques par ordre alphabétique
             List<String> discNames = new ArrayList<>(discData.keySet());
@@ -240,7 +240,7 @@ public class CommandMCytDisc implements CommandExecutor {
         // Commande de suppression d'un disque
         if (args.length == 2 && args[0].equalsIgnoreCase("delete")) {
             String discName = args[1].toLowerCase().replaceAll(" ", "_");
-            deleteCustomDisc(player, discName);
+            deleteCustomMusicDisc(player, discName);
             return true;
         }
 
@@ -272,13 +272,13 @@ public class CommandMCytDisc implements CommandExecutor {
                         player.sendMessage(ChatColor.GRAY + "SoundKey: " + ChatColor.GOLD + soundKey);
 
                     } else {
-                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "No custom disc found with this CustomModelData.");
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "No custom music disc found with this CustomModelData.");
                     }
                 } else {
-                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must be holding a custom disc.");
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must be holding a custom music disc.");
                 }
             } else {
-                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must be holding a custom disc.");
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must be holding a custom music disc.");
             }
             return true;
         }
@@ -327,7 +327,7 @@ public class CommandMCytDisc implements CommandExecutor {
         }
     }
 
-    private void createCustomDisc(Player player, String discName, String displayName) {
+    private void createCustomMusicDisc(Player player, String discName, String displayName) {
         try {
             // Charger le fichier JSON des disques
             JSONObject discData;
@@ -383,7 +383,7 @@ public class CommandMCytDisc implements CommandExecutor {
                 disc.setItemMeta(meta);
 
                 updateDiscModelJson(discName, customModelData);
-                createCustomDiscJson(discName);
+                createCustomMusicDiscJson(discName);
             }
 
             // Ajouter le disque à l'inventaire du joueur
@@ -415,7 +415,7 @@ public class CommandMCytDisc implements CommandExecutor {
             JSONArray overrides = modelJson.getJSONArray("overrides");
             JSONObject newOverride = new JSONObject();
             newOverride.put("predicate", new JSONObject().put("custom_model_data", customModelData));
-            newOverride.put("model", "item/custom_disc_" + discName);
+            newOverride.put("model", "item/custom_music_disc_" + discName);
 
             // Vérifier si l'override existe déjà
             boolean exists = false;
@@ -441,11 +441,11 @@ public class CommandMCytDisc implements CommandExecutor {
         }
     }
 
-    private void createCustomDiscJson(String discName) {
-        String modelPathInZip = "assets/minecraft/models/item/custom_disc_" + discName + ".json";
+    private void createCustomMusicDiscJson(String discName) {
+        String modelPathInZip = "assets/minecraft/models/item/custom_music_disc_" + discName + ".json";
         try {
             // Créer un fichier temporaire JSON
-            File tempJson = File.createTempFile("custom_disc_" + discName, ".json");
+            File tempJson = File.createTempFile("custom_music_disc_" + discName, ".json");
 
             // Créer le JSON pour le disque
             JSONObject discJson = new JSONObject();
@@ -535,10 +535,10 @@ public class CommandMCytDisc implements CommandExecutor {
         }
     }
 
-    private void giveCustomDisc(Player player, String discName) {
+    private void giveCustomMusicDisc(Player player, String discName) {
         try {
             if (!discUuidFile.exists()) {
-                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "No custom disc found. Create a disc first (/mcytdisc help).");
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "No custom music disc found. Create a disc first (/mcytdisc help).");
                 return;
             }
 
@@ -579,14 +579,14 @@ public class CommandMCytDisc implements CommandExecutor {
         }
     }
 
-    private void deleteCustomDisc(Player player, String discName) {
+    private void deleteCustomMusicDisc(Player player, String discName) {
         String soundKey = "mcytdisc." + discName;
-        String customDiscJsonPath = "assets/minecraft/models/item/custom_disc_" + discName + ".json";
+        String customMusicDiscJsonPath = "assets/minecraft/models/item/custom_music_disc_" + discName + ".json";
         String oggFilePath = "assets/minecraft/sounds/custom/" + discName + ".ogg";
         try {
             // Lire et modifier le fichier JSON des disques
             if (!discUuidFile.exists()) {
-                player.sendMessage(ChatColor.RED + "No custom discs found.");
+                player.sendMessage(ChatColor.RED + "No custom music disc found.");
                 return;
             }
 
@@ -624,7 +624,7 @@ public class CommandMCytDisc implements CommandExecutor {
             JSONArray overrides = modelJson.getJSONArray("overrides");
 
             for (int i = 0; i < overrides.length(); i++) {
-                if (overrides.getJSONObject(i).getString("model").equals("item/custom_disc_" + discName)) {
+                if (overrides.getJSONObject(i).getString("model").equals("item/custom_music_disc_" + discName)) {
                     overrides.remove(i);
                     break;
                 }
@@ -635,7 +635,7 @@ public class CommandMCytDisc implements CommandExecutor {
             tempModelJson.delete();
 
             // Supprimer le fichier JSON du disque
-            deleteFileFromZip(zipFilePath, customDiscJsonPath);
+            deleteFileFromZip(zipFilePath, customMusicDiscJsonPath);
 
             // Supprimer le fichier .ogg associé (optionnel, à décommenter si nécessaire)
             deleteFileFromZip(zipFilePath, oggFilePath);
@@ -643,7 +643,7 @@ public class CommandMCytDisc implements CommandExecutor {
             player.sendMessage(ChatColor.GREEN + "The disc '" + displayName + "' has been deleted successfully.");
         } catch (IOException e) {
             e.printStackTrace();
-            player.sendMessage(ChatColor.RED + "Error deleting the custom disc.");
+            player.sendMessage(ChatColor.RED + "Error deleting the custom music disc.");
         }
     }
 

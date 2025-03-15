@@ -15,7 +15,7 @@ mvn clean package
     <packaging>jar</packaging>
 
     <name>MCytDISC</name>
-    <description>Minecraft plugin to create custom discs from YouTube URL</description>
+    <description>Minecraft plugin to create custom music discs from YouTube URL</description>
 
     <repositories>
         <!-- Dépôt Spigot pour accéder à l'API Spigot -->
