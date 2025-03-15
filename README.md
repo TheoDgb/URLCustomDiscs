@@ -1,4 +1,4 @@
-## MCytDISC plugin + MCytDiscPack server resource pack
+## 1.21 MCytDISC plugin + MCytDiscPack server resource pack
 Last updated on March 15, 2025.
 
 <br>
@@ -9,9 +9,14 @@ The plugin supports Minecraft's spatial audio for music. You can also play it in
 
 Additionally, Vanilla commands such as `/playsound` and `/stopsound` work with the custom music, so you do not need to use a jukebox.
 
-/!\ Make sure you use a link that is not from a playlist.
+Important: Make sure you use a link that is not from a playlist.
 
 Note: plugin tested on spigot server 1.21.0
+
+<br>
+
+### Download
+The plugin and resource pack are available for download in the **releases** folder of this repository.
 
 <br>
 
