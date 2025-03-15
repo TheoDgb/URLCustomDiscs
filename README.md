@@ -151,7 +151,7 @@ Create a custom music disc from a YouTube URL:<br>
 
 Give a custom music disc:<br>
 `/mcytdisc give <disc name>`<br><br>
-Display custom music discs list (you can give yourself a disc directly by clicking on its name in the chat):<br>
+Display custom music discs list (you can give yourself a music disc directly by clicking on its name in the chat):<br>
 `/mcytdisc list`<br><br>
 Delete a custom music disc:<br>
 `/mcytdisc delete <disc name>`<br><br>
