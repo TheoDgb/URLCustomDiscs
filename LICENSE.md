@@ -1,3 +1,7 @@
+Copyright (c) 2025 Théo Dal Gobbo
+
+CC BY-NC 4.0 License
+
 Attribution-NonCommercial 4.0 International
 
 =======================================================================

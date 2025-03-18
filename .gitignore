@@ -15,8 +15,12 @@ target/
 ### Dependencies ###
 /src/main/resources/yt-dlp.exe
 /src/main/resources/FFmpeg/
+/src/main/resources/dependencies/
 
 ### Images ###
-/src/main/resources/MCytDISC_logo.png
-/src/main/resources/MCytDISC_square_logo.png
+/src/main/resources/URLCustomDiscs_logo.png
+/src/main/resources/URLCustomDiscs_square_logo.png
 /src/main/resources/pack.png
+
+### Other ###
+/FORME.txt

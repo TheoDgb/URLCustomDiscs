@@ -1,16 +1,16 @@
-name: MCytDISC
-main: com.mcytdisc.MCytDISC
+name: URLCustomDiscs
+main: com.urlcustomdiscs.URLCustomDiscs
 version: 1.0
 author: Asson
 commands:
-  mcytdisc:
-    description: "Allows you to create custom music discs from YouTube URLs"
+  customdisc:
+    description: "Create and play custom music discs from YouTube URLs"
     usage: |
-      /mcytdisc help - Displays the list of commands
-      /mcytdisc create <URL> <disc name> <mono/stereo> - Creates a custom music disc from a Youtube URL
-      /mcytdisc give <disc name> - Gives a custom music disc
-      /mcytdisc list - Displays custom music discs list
-      /mcytdisc delete <disc name> - Deletes a custom music disc
-      /mcytdisc info - Displays custom music disc details in hand
-      /execute positioned ~ ~ ~ run playsound minecraft:mcytdisc.<disc name> ambiant @a - Plays a disc (Vanilla)
-      /stopsound @a * minecraft:mcytdisc.<disc name> - Stops a disc (Vanilla)
+      /customdisc help - Displays the list of commands
+      /customdisc create <URL> <disc name> <mono/stereo> - Creates a custom music disc from a Youtube URL
+      /customdisc give <disc name> - Gives a custom music disc
+      /customdisc list - Displays custom music discs list
+      /customdisc delete <disc name> - Deletes a custom music disc
+      /customdisc info - Displays custom music disc details in hand
+      /execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc name> ambiant @a - Plays a disc (Vanilla)
+      /stopsound @a * minecraft:customdisc.<disc name> - Stops a disc (Vanilla)

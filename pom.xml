@@ -1,21 +1,15 @@
-<!--
-sudo apt install openjdk-17-jdk
-mvn clean install -U
-mvn clean package
--->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com</groupId>
-    <artifactId>MCytDISC</artifactId>
+    <artifactId>URLCustomDiscs</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>MCytDISC</name>
-    <description>Minecraft plugin to create custom music discs from YouTube URL</description>
+    <name>URLCustomDiscs</name>
+    <description>Minecraft plugin to create and play custom music discs from YouTube URLs</description>
 
     <repositories>
         <!-- Dépôt Spigot pour accéder à l'API Spigot -->
@@ -47,7 +41,7 @@ mvn clean package
     </dependencies>
 
     <build>
-        <finalName>MCytDISC-1.0-1.21.0</finalName>
+        <finalName>URLCustomDiscs-1.0-1.21.0</finalName>
 
         <plugins>
             <plugin>
