@@ -13,8 +13,8 @@ target/
 *.ipr
 
 ### Dependencies ###
-/src/main/resources/yt-dlp.exe
-/src/main/resources/FFmpeg/
+/yt-dlp.exe
+/FFmpeg/
 /src/main/resources/dependencies/
 
 ### Images ###
