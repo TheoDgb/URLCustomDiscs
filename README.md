@@ -1,47 +1,68 @@
-## 1.21 URLCustomDiscs.jar plugin + URLCustomDiscsPack.zip server resource pack
+## 1.21 URLCustomDiscs plugin (+ server resource pack)
 Last updated on March 18, 2025.
 
 <br>
 
-### Description
-This plugin (+ server resource pack required for the plugin to work) allows you to create and play custom music discs from YouTube URLs on your Minecraft server with real-time updates for players.<br>
-Once installed, everything is done in-game, and there's no need to manually edit the resource pack files to add or remove discs.<br>
-The plugin supports Minecraft's spatial audio for music. You can also play it in stereo.
+## About
+This plugin, along with a required server resource pack, allows you to create and play custom music discs from YouTube URLs on your Minecraft server, with real-time updates for players.
+
+Once installed, everything is done in-game, and there's no need to manually edit the resource pack files to add or remove discs.
+
+The plugin supports Minecraft's spatial audio for music, but you can also play it in stereo.
 
 Additionally, Vanilla commands such as `/playsound` and `/stopsound` work with the custom music, so you do not need to use a disc in a jukebox.
 
 Important:
-- Currently only works on Windows due to dependencies
-- Make sure to use a link that isn't from a playlist, or you might be in for a surprise.
+- Currently only works on Windows due to dependencies.
+- Make sure to use a link that is not from a playlist, or you might be in for a surprise.
 
 Note: plugin tested on 1.21.0 Spigot server
 
+## Commands Overview
+Display the list of commands:<br>
+`/customdisc help`<br><br>
+Create a custom music disc from a YouTube URL:<br>
+`/customdisc create <URL> <disc name> <mono/stereo>`
+- mono: enables spatial audio (like played in a jukebox)
+- stereo: plays the sound in the traditional way
+
+Give a custom music disc:<br>
+`/customdisc give <disc name>`<br><br>
+Display custom music discs list (you can give yourself a music disc directly by clicking on its name in the chat):<br>
+`/customdisc list`<br><br>
+Delete a custom music disc:<br>
+`/customdisc delete <disc name>`<br><br>
+Display custom music disc details in hand (used for debugging):<br>
+`/customdisc info`
+
 <br>
 
-### Download
-The plugin and resource pack are available for download in the **releases** folder of this repository.
+Vanilla command to play a custom track (can be used with coordinates):<br>
+`/execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc name> ambiant @a`
 
-<br>
+Vanilla command to stop a custom track:<br>
+`/stopsound @a * minecraft:customdisc.<disc name>`
 
-### Dependencies
+## Dependencies
 - A **Spigot Minecraft server** (the plugin has not been tested on other server types).
-- A **personal web server** hosting the resource, which allows:
-  - the plugin to access the resource pack via an absolute path to edit it;
-  - players to access the resource pack and receive real-time updates for custom music discs.
+- A **personal web server** hosting the resource pack, which allows:
+  - the plugin to access the resource pack via an absolute path for editing;
+  - players to download the resource pack and receive real-time updates for custom music discs.
 - **yt-dlp** to download an MP3 audio file from a YouTube URL.
 - **FFmpeg** to convert MP3 format to Ogg format.
 
-<br>
-
 ### License and Attribution
+This plugin uses **yt-dlp** ([unlicense](https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE)) and **FFmpeg** from the [FFmpeg.org](http://ffmpeg.org/) under the [LGPLv2.1](https://www.gnu.org/licenses/lgpl-2.1.html).<br>
+yt-dlp and FFmpeg are not included in this project and must be installed separately.
 
-This plugin uses libraries from the [FFmpeg project](http://ffmpeg.org/) under the [LGPLv2.1](https://www.gnu.org/licenses/lgpl-2.1.html).<br>
-Please refer to the official FFmpeg documentation for more details about their licensing terms.
+## Download
+The plugin (URLCustomDiscs.jar) and the server resource pack (URLCustomDiscsPack.zip) are available for download in the **releases** folder of this repository.
 
-<br>
-
-### Servers Guide
+## Servers Guide
 If you already have a Minecraft server and a personal web server that allows downloading a resource pack via URL, you can skip this section.
+
+<details>
+<summary>Tutorial for setting up a personal web server</summary>
 
 First, you'll need a [1.21 Spigot Minecraft server](https://getbukkit.org/get/4063d239ce16b22d948c037ce7a9fb8c).
 - This topic is not covered here.
@@ -63,26 +84,25 @@ Here's a tutorial to create an Apache server on Windows:
 	Header set Content-Disposition "attachment; filename=URLCustomDiscsPack.zip"
 </Files>
 ```
-- Restart Apache, then try to download the resource pack with this URL : [http://your_public_ip:80/URLCustomDiscsPack.zip]()
+- Restart Apache, then try to download the resource pack with this URL: <br>
+  [http://your_public_ip:80/URLCustomDiscsPack.zip]()
+</details>
 
-<br>
-
-### Installation Guide
+## Installation Guide
 - Download the URLCustomDiscs-1.0-1.21.0.jar plugin and place it in your Minecraft server's plugins folder (or create one if it doesn't exist).
 - Download the URLCustomDiscsPack.zip resource pack and place it in your desired directory on your personal web server to make it available for download.
 - In your Minecraft server's server.properties file, locate the line "resource-pack=" and update it to include your download URL:
-`resource-pack=http://your_public_ip:80/URLCustomDiscsPack.zip`
-  - You can also force the resource pack to be downloaded for players by setting: `require-resource-pack=true`
+  `resource-pack=http://your_public_ip:80/URLCustomDiscsPack.zip`
+  - You can also force the resource pack to be downloaded for players by setting: <br>
+    `require-resource-pack=true`
 - Download the "yt-dlp.exe" executable from [yt-dlp GitHub](https://github.com/yt-dlp/yt-dlp#installation) and place it in your Minecraft server folder.
 - Download FFmpeg from [FFmpeg official website](https://ffmpeg.org/download.html), extract it in your Minecraft server folder, and rename the folder to "FFmpeg":
-  - Example for Windows x64 users: 
+  - Example for Windows x64 users:
     - Download "ffmpeg-master-latest-win64-gpl-shared.zip" from [FFmpeg Builds GitHub](https://github.com/BtbN/FFmpeg-Builds/releases).
     - Extract the .zip archive in your Minecraft server folder.
     - Rename the "ffmpeg-master-latest-win64-gpl-shared" folder to "FFmpeg".
 
-<br>
-
-### Configuration Guide
+## Configuration Guide
 - Start your Minecraft server to allow the plugin to generate the necessary files.
 - In your Minecraft server folder, open plugins/URLCustomDiscs/config.yml.
 - Follow the instructions to add the absolute path and download URL for the resource pack.
@@ -90,8 +110,11 @@ Here's a tutorial to create an Apache server on Windows:
 
 <br>
 
-### Is Everything Working Fine ?
+## Is Everything Working Fine ?
 You should automatically receive the resource pack when you join the server and should experience automatic resource pack updates when a custom music disc is created.
+
+<details>
+<summary>Troubleshooting: If something is not working</summary>
 
 If you do not receive the resource pack, check:
 - that you can download the resource pack from the URL on your personal web server;
@@ -101,10 +124,12 @@ If you do not receive the resource pack, check:
 If you can't create a custom music disc, check:
 - the configuration of the absolute path of the resource pack in config.yml;
 - the installation of yt-dlp and FFmpeg.
+</details>
 
-<br>
+## Tree Structures
+<details>
+<summary>Understanding where/how everything goes/works</summary>
 
-### Tree Structures
 Your Minecraft server:
 ```
 your_server_folder/
@@ -141,30 +166,7 @@ URLCustomDiscsPack.zip/
 │       └── sounds.json (tracks automatically associated with custom music discs)
 └── pack.mcmeta
 ```
+</details>
 
-<br>
-
-### Commands Overview
-Display the list of commands:<br>
-`/customdisc help`<br><br>
-Create a custom music disc from a YouTube URL:<br>
-`/customdisc create <URL> <disc name> <mono/stereo>`
-- mono: enables spatial audio (like played in a jukebox)
-- stereo: plays the sound in the traditional way
-
-Give a custom music disc:<br>
-`/customdisc give <disc name>`<br><br>
-Display custom music discs list (you can give yourself a music disc directly by clicking on its name in the chat):<br>
-`/customdisc list`<br><br>
-Delete a custom music disc:<br>
-`/customdisc delete <disc name>`<br><br>
-Display custom music disc details in hand (used for debugging):<br>
-`/customdisc info`
-
-<br>
-
-Vanilla command to play a custom track (can be used with coordinates):<br>
-`/execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc name> ambiant @a`
-
-Vanilla command to stop a custom track:<br>
-`/stopsound @a * minecraft:customdisc.<disc name>`
+## Disclaimer
+Please note that it is the sole responsibility of each user to comply with applicable copyright laws and the terms of service of any music provider when using this plugin. The developer of this plugin do not assume any liability for unauthorized use or violations of such laws and regulations.
