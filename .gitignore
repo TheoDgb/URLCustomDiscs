@@ -18,9 +18,7 @@ target/
 /src/main/resources/dependencies/
 
 ### Images ###
-/src/main/resources/URLCustomDiscs_logo.png
-/src/main/resources/URLCustomDiscs_square_logo.png
-/src/main/resources/pack.png
+/src/main/resources/URLCustomDiscs_icon.png
 
 ### Other ###
 /FORME.txt

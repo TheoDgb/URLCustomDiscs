@@ -50,7 +50,7 @@ Second, you need to host the URLCustomDiscsPack.zip resource pack on a personal 
 
 Here's a tutorial to create an Apache server on Windows:
 - Access your router's configuration interface to:
-  - configure a NAT/PAT rule for TCP port forwarding, setting both internal and external ports to 80, and using the public IP address of the machine running the Apache HTTP web server (you can quickly fint it on websites like [WhatIsMyIp.com](https://www.whatismyip.com/));
+  - configure a NAT/PAT rule for TCP port forwarding, setting both internal and external ports to 80, and using the public IP address of the machine running the Apache HTTP web server (you can quickly find it on websites like [WhatIsMyIp.com](https://www.whatismyip.com/));
   - open TCP port 80, which is the default for HTTP traffic, in your firewall to allow incoming connections.
 - Download Apache from [Apache Lounge](https://www.apachelounge.com/download/) (httpd-version.zip).
 - Follow the ReadMe.txt instructions to set up your localhost Apache server.
@@ -63,7 +63,7 @@ Here's a tutorial to create an Apache server on Windows:
 	Header set Content-Disposition "attachment; filename=URLCustomDiscsPack.zip"
 </Files>
 ```
-- Restart Apache, then try to download the resource pack with this URL : http://your_public_ip:80/URLCustomDiscsPack.zip
+- Restart Apache, then try to download the resource pack with this URL : [http://your_public_ip:80/URLCustomDiscsPack.zip]()
 
 <br>
 
