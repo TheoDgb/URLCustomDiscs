@@ -1,5 +1,5 @@
 ## 1.21 URLCustomDiscs plugin (+ server resource pack)
-Last updated on March 18, 2025.
+Last updated on March 19, 2025.
 
 ## About
 This plugin, along with a required server resource pack, allows you to create and play custom music discs from YouTube URLs on your Minecraft server, with real-time updates for players.
