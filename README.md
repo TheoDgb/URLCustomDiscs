@@ -110,7 +110,7 @@ Here's a tutorial to create an Apache server on Windows:
 </details>
 
 ## Installation Guide
-- Download the URLCustomDiscs-1.0-1.21.0.jar plugin and place it in your Minecraft server's plugins folder (or create one if it doesn't exist).
+- Download the URLCustomDiscs-1.0.0-1.21.0.jar plugin and place it in your Minecraft server's plugins folder (or create one if it doesn't exist).
 - Download the URLCustomDiscsPack.zip resource pack and place it in your desired directory on your personal web server to make it available for download.
 - In your Minecraft server's server.properties file, locate the line "resource-pack=" and update it to include your download URL:
   `resource-pack=http://your_public_ip:80/URLCustomDiscsPack.zip`
@@ -157,12 +157,12 @@ your_server_folder/
 │   ├── doc/...
 │   ├── include/...
 │   └── lib/...
-├── plugins/                          (create it if not already done)
-│   ├── URLCustomDiscs/               (automatically created when the plugin is loaded, plugin folder)
-│   │   ├── music/                    (automatically created when creating a custom music disc, used to download and convert YouTube music to Ogg)
-│   │   ├── discs.json                (automatically created when creating a custom music disc, stores information about custom music discs)
-│   │   └── config.yml                (automatically created when the plugin is loaded, allows you to configure the resource pack server)
-│   └── URLCustomDiscs-1.0-1.21.0.jar (download the URLCustomDiscs plugin)
+├── plugins/                            (create it if not already done)
+│   ├── URLCustomDiscs/                 (automatically created when the plugin is loaded, plugin folder)
+│   │   ├── music/                      (automatically created when creating a custom music disc, used to download and convert YouTube music to Ogg)
+│   │   ├── discs.json                  (automatically created when creating a custom music disc, stores information about custom music discs)
+│   │   └── config.yml                  (automatically created when the plugin is loaded, allows you to configure the resource pack server)
+│   └── URLCustomDiscs-1.0.0-1.21.0.jar (download the URLCustomDiscs plugin)
 ├── yt-dlp.exe
 └── other server folders and files...
 ```
