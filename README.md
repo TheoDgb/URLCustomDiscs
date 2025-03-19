@@ -1,8 +1,6 @@
 ## 1.21 URLCustomDiscs plugin (+ server resource pack)
 Last updated on March 18, 2025.
 
-<br>
-
 ## About
 This plugin, along with a required server resource pack, allows you to create and play custom music discs from YouTube URLs on your Minecraft server, with real-time updates for players.
 
@@ -14,7 +12,7 @@ Additionally, Vanilla commands such as `/playsound` and `/stopsound` work with t
 
 Important:
 - Currently only works on Windows due to dependencies.
-- Make sure to use a link that is not from a playlist, or you might be in for a surprise.
+- Make sure to use a direct video link without parameters (such as playlist, timecode, etc.), or you might be in for a surprise. Delete everything starting from & in the URL.
 
 Note: plugin tested on 1.21.0 Spigot server
 
@@ -56,7 +54,7 @@ This plugin uses **yt-dlp** ([unlicense](https://github.com/yt-dlp/yt-dlp/blob/m
 yt-dlp and FFmpeg are not included in this project and must be installed separately.
 
 ## Download
-The plugin (URLCustomDiscs.jar) and the server resource pack (URLCustomDiscsPack.zip) are available for download in the **releases** folder of this repository.
+The **URLCustomDiscs.jar** plugin and the **URLCustomDiscsPack.zip** server resource pack are available for download in the [**Releases**](https://github.com/TheoDgb/URLCustomDiscs/releases) section.
 
 ## Servers Guide
 If you already have a Minecraft server and a personal web server that allows downloading a resource pack via URL, you can skip this section.
@@ -107,8 +105,6 @@ Here's a tutorial to create an Apache server on Windows:
 - In your Minecraft server folder, open plugins/URLCustomDiscs/config.yml.
 - Follow the instructions to add the absolute path and download URL for the resource pack.
 - Restart your Minecraft server
-
-<br>
 
 ## Is Everything Working Fine ?
 You should automatically receive the resource pack when you join the server and should experience automatic resource pack updates when a custom music disc is created.

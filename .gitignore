@@ -15,10 +15,9 @@ target/
 ### Dependencies ###
 /yt-dlp.exe
 /FFmpeg/
-/src/main/resources/dependencies/
 
 ### Images ###
-/src/main/resources/URLCustomDiscs_icon.png
+/URLCustomDiscs_icon.png
 
 ### Other ###
 /FORME.txt
