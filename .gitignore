@@ -16,9 +16,7 @@ target/
 /yt-dlp.exe
 /FFmpeg/
 
-### Images ###
-/URLCustomDiscs_icon.png
-
 ### Other ###
-/FORME.txt
+/FORME.md
+/FORMECODE.txt
 /READMEpublishingsite.md
