@@ -36,24 +36,24 @@ public class CommandURLCustomDiscs implements CommandExecutor {
 
     private final URLCustomDiscs plugin;
     private final File discUuidFile;
+    private final String os;
     private final String zipFilePath;
     private final String resourcePackURL;
 
     public CommandURLCustomDiscs(URLCustomDiscs plugin) {
         this.plugin = plugin;
         this.discUuidFile = new File(plugin.getDataFolder(), "discs.json");
+        this.os = plugin.getOperatingSystem();
         this.zipFilePath = plugin.getZipFilePath();
         this.resourcePackURL = plugin.getResourcePackURL();
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage("Only players can use this command.");
             return false;
         }
-
-        Player player = (Player) sender;
 
         // /Help
         if (args.length == 1 && args[0].equalsIgnoreCase("help")) {
@@ -117,8 +117,18 @@ public class CommandURLCustomDiscs implements CommandExecutor {
 
             new Thread(() -> {
                 try {
-                    // Télécharger l'audio
-                    ProcessBuilder ytDlp = new ProcessBuilder("./yt-dlp.exe", "-f", "bestaudio[ext=m4a]/best",
+                    // Selecting executables based on OS
+                    String ytDlpExecutable = "";
+                    String ffmpegExecutable = "";
+                    if (os.contains("win")) { // Windows
+                        ytDlpExecutable = "./yt-dlp.exe";
+                        ffmpegExecutable = "./FFmpeg/bin/ffmpeg.exe";
+                    } else if (os.contains("nix") || os.contains("nux") || os.contains("mac")) { // Linux (and macOS)
+                        ytDlpExecutable = "./yt-dlp";
+                        ffmpegExecutable = "./FFmpeg/bin/ffmpeg";
+                    }
+                    // Download audio
+                    ProcessBuilder ytDlp = new ProcessBuilder(ytDlpExecutable, "-f", "bestaudio[ext=m4a]/best",
                             "--audio-format", "mp3", "-o", mp3File.getAbsolutePath(), url);
                     Process ytDlpProcess = ytDlp.start();
 
@@ -140,9 +150,9 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                     // Convertir le fichier mp3 en ogg mono ou stereo
                     ProcessBuilder ffmpeg;
                     if (audioType.equals("mono")) {
-                        ffmpeg = new ProcessBuilder("./FFmpeg/bin/ffmpeg.exe", "-i", mp3File.getAbsolutePath(), "-ac", "1", "-c:a", "libvorbis", oggFile.getAbsolutePath());
+                        ffmpeg = new ProcessBuilder(ffmpegExecutable, "-i", mp3File.getAbsolutePath(), "-ac", "1", "-c:a", "libvorbis", oggFile.getAbsolutePath());
                     } else if (audioType.equals("stereo")) {
-                        ffmpeg = new ProcessBuilder("./FFmpeg/bin/ffmpeg.exe", "-i", mp3File.getAbsolutePath(), "-c:a", "libvorbis", oggFile.getAbsolutePath());
+                        ffmpeg = new ProcessBuilder(ffmpegExecutable, "-i", mp3File.getAbsolutePath(), "-c:a", "libvorbis", oggFile.getAbsolutePath());
                     } else {
                         player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Invalid audio type, use 'mono' or 'stereo'.");
                         return;
@@ -173,7 +183,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                         }
                     }).start();
 
-                    int ffmpegExitCode = ffmpegProcess.waitFor();  // Attendre la fin de la conversion
+                    int ffmpegExitCode = ffmpegProcess.waitFor(); // Attendre la fin de la conversion
 
                     if (ffmpegExitCode == 0) {
                         // Suppression du fichier .mp3 après conversion si nécessaire
@@ -181,7 +191,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                         player.sendMessage(ChatColor.GRAY + "Music downloaded and converted to .ogg!");
 
                         // Ajouter le .ogg au resourcepack zip
-                        addFileToZip("C:/Apache24/Apache24/htdocs/URLCustomDiscsPack.zip", oggFile, "assets/minecraft/sounds/custom/" + oggFile.getName());
+                        addFileToZip(zipFilePath, oggFile, "assets/minecraft/sounds/custom/" + oggFile.getName());
                         player.sendMessage(ChatColor.GRAY + "Music added to the server resource pack!");
 
                         // Met à jour sounds.json

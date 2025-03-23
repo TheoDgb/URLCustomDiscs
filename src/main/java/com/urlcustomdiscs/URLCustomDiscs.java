@@ -13,10 +13,12 @@ public class URLCustomDiscs extends JavaPlugin {
 
     private String zipFilePath;
     private String resourcePackURL;
+    private final String os = System.getProperty("os.name").toLowerCase();
 
     @Override
     public void onEnable() {
         getLogger().info("URLCustomDiscs enabled !");
+        getLogger().info("Running on OS: " + getOperatingSystem());
 
         // Charger ou créer le fichier de configuration
         loadConfig();
@@ -48,7 +50,8 @@ public class URLCustomDiscs extends JavaPlugin {
                         "# Configuration file for URLCustomDiscs plugin\n" +
                                 "\n" +
                                 "# zipFilePath: Absolute path to the URLCustomDiscsPack.zip resource pack for editing.\n" +
-                                "# Example: C:/Apache24/htdocs/URLCustomDiscsPack.zip\n" +
+                                "# Example for Windows: C:/Apache24/htdocs/URLCustomDiscsPack.zip\n" +
+                                "# Example for Linux: /var/www/html/URLCustomDiscsPack.zip\n" +
                                 "zipFilePath: \"C:/Apache24/htdocs/URLCustomDiscsPack.zip\"\n" +
                                 "\n" +
                                 "# resourcePackURL: Download URL of the URLCustomDiscsPack.zip resource pack to update it for players.\n" +
@@ -65,6 +68,8 @@ public class URLCustomDiscs extends JavaPlugin {
         zipFilePath = config.getString("zipFilePath");
         resourcePackURL = config.getString("resourcePackURL");
     }
+
+    public String getOperatingSystem() { return os; }
 
     public String getZipFilePath() {
         return zipFilePath;

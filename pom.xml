@@ -41,7 +41,7 @@
     </dependencies>
 
     <build>
-        <finalName>URLCustomDiscs-1.0.0-1.21.0</finalName>
+        <finalName>URLCustomDiscs-1.0.1-1.21.0-1.21.1</finalName>
 
         <plugins>
             <plugin>

@@ -34,11 +34,14 @@ public class JukeboxListener implements Listener {
             Jukebox jukebox = (Jukebox) jukeboxBlock.getState();
             Location jukeboxLocation = jukebox.getLocation();
 
-            // Vérifie si un disque vanilla est déjà présent
-            if (jukebox.getRecord().getType() != Material.AIR) {
-                jukebox.eject(); // Éjecte le disque actuel
-                event.setCancelled(true); // Empêche toute action par défaut
-                plugin.getServer().getScheduler().runTaskLater(plugin, () -> jukebox.setRecord(null), 1L);
+            // Vérifier si un disque vanilla est joué
+            ItemStack currentRecord = jukebox.getInventory().getItem(0);  // L'index 0 est généralement pour le disque du jukebox
+            if (currentRecord != null && currentRecord.getType() != Material.AIR) {
+                jukebox.getInventory().clear();
+                event.setCancelled(true); // Annule l'événement pour empêcher la lecture par défaut
+                // Planifie une tâche pour vider le jukebox et arrêter la musique
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                }, 1L);
             }
 
             // Si le jukebox est déjà actif, on arrête la musique et on retire le disque
@@ -48,7 +51,7 @@ public class JukeboxListener implements Listener {
                 for (String currentSoundKey : activeSounds) {
 
                     // Arrêter le son pour tous les joueurs
-                    // si bukkit décide d'intégrer le stopsound à des coordonnées...
+                    // stopsound à des coordonnées... beautiful dream
                     // for (Player onlinePlayer : plugin.getServer().getOnlinePlayers()) {
                     //     onlinePlayer.stopSound(currentSoundKey, org.bukkit.SoundCategory.RECORDS);
                     // }
@@ -59,8 +62,8 @@ public class JukeboxListener implements Listener {
                                     " run stopsound @a[distance=..80] * minecraft:" + currentSoundKey);
                 }
                 activeSounds.clear();  // Vide la liste des sons actifs
-                jukebox.eject(); // Éjecte le disque
-                event.setCancelled(true); // Annule l'événement pour empêcher la lecture par défaut
+                jukebox.getInventory().clear(); // Éjecte le disque
+                event.setCancelled(true);
                 // Forcer la suppression du disque dans le jukebox
                 plugin.getServer().getScheduler().runTaskLater(plugin, () -> jukebox.setRecord(null), 1L);
                 return;
