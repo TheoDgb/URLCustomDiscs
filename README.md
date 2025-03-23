@@ -189,4 +189,4 @@ URLCustomDiscsPack.zip/
 </details>
 
 ## Disclaimer
-Please note that it is the sole responsibility of each user to comply with applicable copyright laws and the terms of service of any music provider when using this plugin. The developer of this plugin do not assume any liability for unauthorized use or violations of such laws and regulations.
+Please note that it is the sole responsibility of each user to comply with applicable copyright laws and the terms of service of any music provider when using this plugin. The developer of this plugin does not assume any liability for unauthorized use or violations of such laws and regulations.
