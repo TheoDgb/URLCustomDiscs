@@ -92,7 +92,7 @@ Here are two tutorials for setting up a **personal local web server** (Windows /
 
 ### Personal Local Web Server
 <details>
-<summary>Create an Apache server on Windows</summary>
+<summary><b>Create an Apache server on Windows</b></summary>
 
 - Download Apache from [Apache Lounge](https://www.apachelounge.com/download/) (httpd-version.zip).
 - Follow the ReadMe.txt instructions to set up your localhost Apache server.
@@ -110,7 +110,7 @@ Here are two tutorials for setting up a **personal local web server** (Windows /
 
 Your **personal local web server** now works with a locally-hosted Minecraft server.
 <details>
-<summary>Extra steps for an online-hosted Minecraft server (Apache server on Windows)</summary>
+<summary><b>Extra steps for an online-hosted Minecraft server (Apache server on Windows)</b></summary>
 
 - Download PHP ([Thread Safe version zip](https://windows.php.net/downloads/releases/php-8.4.5-Win32-vs17-x64.zip)) from [php.net](https://windows.php.net/download/).
 - Extract all the files from the zip archive to C:/php/
@@ -161,9 +161,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 - Restart Apache to ensure the changes take effect.
 </details>
 </details>
-
+<br>
 <details>
-<summary>Create an Apache server on Linux</summary>
+<summary><b>Create an Apache server on Linux</b></summary>
 
 - Install Apache: `sudo apt update && sudo apt install apache2 -y`
 - check that Apache is running or start it:
@@ -185,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 
 Your **personal local web server** now works with a locally-hosted Minecraft server.
 <details>
-<summary>Extra steps for an online-hosted Minecraft server (Apache server on Linux)</summary>
+<summary><b>Extra steps for an online-hosted Minecraft server (Apache server on Linux)</b></summary>
 
 - Install PHP : `sudo apt install php libapache2-mod-php`
 - php.ini is the configuration files for PHP, where you can set file size limits, execution times, and more. In php.ini, change the values of the following lines to your desired limits: <br>
