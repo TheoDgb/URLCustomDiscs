@@ -78,7 +78,7 @@ yt-dlp and FFmpeg are not included in this project and must be installed separat
 
 ## Download
 The **URLCustomDiscs.jar** plugin and the **URLCustomDiscsPack.zip** server resource pack are available for download in the [**Releases**](https://github.com/TheoDgb/URLCustomDiscs/releases) section. <br>
-It is also available on [Modrinth](https://modrinth.com/plugin/url-custom-discs).
+It is also available on [Modrinth](https://modrinth.com/plugin/url-custom-discs) ([**Versions**](https://modrinth.com/plugin/url-custom-discs/versions)).
 
 ## Servers Guide
 You'll need to host the **URLCustomDiscsPack.zip** server resource pack on a **personal local web server** that the plugin can access and edit. Using an online file hosting service (such as [MCPacks](https://mc-packs.net/)) will not work.
@@ -110,7 +110,7 @@ Here are two tutorials for setting up a **personal local web server** (Windows /
 
 Your **personal local web server** now works with a locally-hosted Minecraft server.
 <details>
-<summary>Extra steps for an online-hosted Minecraft server</summary>
+<summary>Extra steps for an online-hosted Minecraft server (Apache server on Windows)</summary>
 
 - Download PHP ([Thread Safe version zip](https://windows.php.net/downloads/releases/php-8.4.5-Win32-vs17-x64.zip)) from [php.net](https://windows.php.net/download/).
 - Extract all the files from the zip archive to C:/php/
@@ -185,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 
 Your **personal local web server** now works with a locally-hosted Minecraft server.
 <details>
-<summary>Extra steps for an online-hosted Minecraft server</summary>
+<summary>Extra steps for an online-hosted Minecraft server (Apache server on Linux)</summary>
 
 - Install PHP : `sudo apt install php libapache2-mod-php`
 - php.ini is the configuration files for PHP, where you can set file size limits, execution times, and more. In php.ini, change the values of the following lines to your desired limits: <br>
@@ -244,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 
 ## Dependencies Installation Guide
 - Download the **yt-dlp** executable from [yt-dlp GitHub](https://github.com/yt-dlp/yt-dlp#installation) ([**Windows**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe), [**Linux**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp)) and place it in your_mc_server_folder/plugins/URLCustomDiscs/
-  - If you are on Linux, grant execution permissions to yt-dlp with: `chmod +x yt-dlp`
+  - If your Minecraft server is on Linux, grant execution permissions to yt-dlp with: `chmod +x yt-dlp`
 - Download **FFmpeg** from [FFmpeg GitHub](https://github.com/BtbN/FFmpeg-Builds/releases) ([**Windows**](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip), [**Linux**](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl-shared.tar.xz)), extract it in your_mc_server_folder/plugins/URLCustomDiscs/, and rename the folder to "FFmpeg":
   - Example for Windows users:
     - Download "ffmpeg-master-latest-win64-gpl-shared.zip".
