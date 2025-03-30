@@ -253,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 
 ## Tree Structures
 <details>
-<summary>Understanding where/how everything goes/works</summary>
+<summary><b>Understanding where/how everything goes/works</b></summary>
 
 Your Minecraft server:
 ```
