@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import static org.bukkit.Bukkit.getLogger;
+
 public class DiscUtils {
     // Charger les données du fichier discs.json
     public static JSONObject loadDiscData(File discUuidFile) {
@@ -16,7 +18,7 @@ public class DiscUtils {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Failed to load disc data: " + discUuidFile);
+            getLogger().severe("Failed to load disc data: " + discUuidFile);
         }
         return new JSONObject(); // Retourne un objet vide en cas d'erreur
     }

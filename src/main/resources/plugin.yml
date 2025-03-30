@@ -1,6 +1,6 @@
 name: URLCustomDiscs
 main: com.urlcustomdiscs.URLCustomDiscs
-version: 1.0.1
+version: 1.0.2
 api-version: 1.21
 author: Asson
 commands:
