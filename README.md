@@ -69,7 +69,7 @@ Vanilla command to stop a custom track:<br>
 ## Dependencies
 - **yt-dlp** to download an MP3 audio file from a YouTube URL.
 - **FFmpeg** to convert MP3 format to Ogg format.
-- A **personal local web server** hosting the server resource pack, which allows:
+- A **personal local HTTP server** hosting the server resource pack, which allows:
   - the plugin to edit the server resource pack via an absolute path for locally-hosted Minecraft server;
   - the plugin to edit the server resource pack via download and upload (POST method) for online-hosted Minecraft server;
   - players to download the server resource pack and receive real-time updates for custom music discs.
@@ -83,16 +83,26 @@ The **URLCustomDiscs.jar** plugin and the **URLCustomDiscsPack.zip** server reso
 It is also available on [Modrinth](https://modrinth.com/plugin/url-custom-discs) ([**Versions**](https://modrinth.com/plugin/url-custom-discs/versions)).
 
 ## Servers Guide
-You'll need to host the **URLCustomDiscsPack.zip** server resource pack on a **personal local web server** that the plugin can access and edit. Using an online file hosting service (such as [MCPacks](https://mc-packs.net/)) will not work.
+Important:
+- For users who don't want or can't host their Minecraft server on their own personal machine, it's common to turn to online hosting providers.
+  Keep in mind that you’ll still need a personal HTTP server to host the resource pack for the custom music discs to be added and updated automatically.
+- If you're using shared hosting like Shockbyte or a similar provider, **make sure your host allows you to run binary files** (for yt-dlp and FFmpeg, in our case).
+  Some hosts may have restrictions or require special permissions. Check their documentation or contact their support if you're not sure.
+- For full control and compatibility, it's highly recommended to use a VPS (Virtual Private Server), which gives you full root access, instead of shared Minecraft hosting.
+  With a VPS, you can host both your Minecraft server and an (Apache) HTTP server on the same machine, making it ideal for serving the resource pack directly.
+  The Apache server setup on a VPS is not covered in this guide (locally only). Configuring the IP, ports, firewall, and other related settings is the user's responsibility, as these can vary depending on the VPS provider. However, the steps to set up an Apache server remain the same on a VPS.
+  Just make sure to configure your firewall and open the necessary ports, as VPS environments usually require manual network setup.
 
-Here are two tutorials for setting up a **personal local web server** (Windows / Linux). These tutorials cover how to make your **personal local web server** work with both local and online Minecraft servers.
+You'll need to host the **URLCustomDiscsPack.zip** server resource pack on a **personal local HTTP server** that the plugin can access and edit. Using an online file hosting service (such as [MCPacks](https://mc-packs.net/)) will not work.
+
+Here are two tutorials for setting up a **personal local HTTP server** (Windows / Linux). These tutorials cover how to make your **personal local HTTP server** work with both local and online Minecraft servers.
 
 ### Router Configuration
 - Access your router's configuration interface to:
-  - configure a NAT/PAT rule for TCP port forwarding, setting both internal and external ports to 80, and using the public IP address of the machine running the Apache HTTP web server (you can quickly find it on websites like [WhatIsMyIp.com](https://www.whatismyip.com/));
+  - configure a NAT/PAT rule for TCP port forwarding, setting both internal and external ports to 80, and using the public IP address of the machine running the Apache HTTP server (you can quickly find it on websites like [WhatIsMyIp.com](https://www.whatismyip.com/));
   - open TCP port 80, which is the default for HTTP traffic, in your firewall to allow incoming connections.
 
-### Personal Local Web Server
+### Personal Local HTTP Server
 <details>
 <summary><b>Create an Apache server on Windows</b></summary>
 
@@ -110,7 +120,7 @@ Here are two tutorials for setting up a **personal local web server** (Windows /
 - Restart Apache, then try to download the server resource pack with this URL: <br>
   [http://your_public_ip:80/URLCustomDiscsPack.zip]()
 
-Your **personal local web server** now works with a locally-hosted Minecraft server.
+Your **personal local HTTP server** now works with a locally-hosted Minecraft server.
 <details>
 <summary><b>Extra steps for an online-hosted Minecraft server (Apache server on Windows)</b></summary>
 
@@ -180,12 +190,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 - Set the correct ownership to make changes in /var/www/html/: <br>
   `sudo chown -R <your_user>:<your_user> /var/www/html`
 - Download the URLCustomDiscsPack.zip server resource pack and place it in the /var/www/html/ directory.
-- Reset the ownership for www-data to ensure the web server can access the files:
+- Reset the ownership for www-data to ensure the HTTP server can access the files:
   `sudo chown -R www-data:www-data /var/www/html`
 - Restart Apache, then try to download the server resource pack with this URL: <br>
   [http://your_public_ip:80/URLCustomDiscsPack.zip]()
 
-Your **personal local web server** now works with a locally-hosted Minecraft server.
+Your **personal local HTTP server** now works with a locally-hosted Minecraft server.
 <details>
 <summary><b>Extra steps for an online-hosted Minecraft server (Apache server on Linux)</b></summary>
 
@@ -227,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 }
 ?>
 ```
-- Reset the ownership for www-data to ensure the web server can access the files:
+- Reset the ownership for www-data to ensure the HTTP server can access the files:
   `sudo chown -R www-data:www-data /var/www/html`
 - Restart Apache to ensure the changes take effect.
 </details>
@@ -235,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 
 ## Configuration Guide
 - Download the **URLCustomDiscs.jar** plugin and place it in your Minecraft server's plugins folder.
-- Download the **URLCustomDiscsPack.zip** server resource pack and place it in the directory of your **personal local web server**, as specified in the Servers Guide, to make it available for download and editing.
+- Download the **URLCustomDiscsPack.zip** server resource pack and place it in the directory of your **personal local HTTP server**, as specified in the Servers Guide, to make it available for download and editing.
 - Start your Minecraft server to allow the plugin to generate the necessary files.
 - In your Minecraft server folder, open plugins/URLCustomDiscs/config.yml and follow the instructions to properly configure the file.
 - In your Minecraft server's server.properties file, locate the line "resource-pack=" and update it to include your download URL:
@@ -245,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 - Restart your Minecraft server
 
 ## Dependencies Installation Guide
-- Download the **yt-dlp** executable from [yt-dlp GitHub](https://github.com/yt-dlp/yt-dlp#installation) ([**Windows**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe), [**Linux**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp)) and place it in your_mc_server_folder/plugins/URLCustomDiscs/
+- Download the **yt-dlp** executable from [yt-dlp GitHub](https://github.com/yt-dlp/yt-dlp#installation) ([**Windows**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe), [**Linux (requires Python to be installed)**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp), [**Linux (standalone but larger in size and must be renamed to "yt-dlp")**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux)) and place it in your_mc_server_folder/plugins/URLCustomDiscs/
   - If your Minecraft server is on Linux, grant execution permissions to yt-dlp with: `chmod +x yt-dlp`
 - Download **FFmpeg** from [FFmpeg GitHub](https://github.com/BtbN/FFmpeg-Builds/releases) ([**Windows**](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip), [**Linux**](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl-shared.tar.xz)), extract it in your_mc_server_folder/plugins/URLCustomDiscs/, and rename the folder to "FFmpeg":
   - Example for Windows users:

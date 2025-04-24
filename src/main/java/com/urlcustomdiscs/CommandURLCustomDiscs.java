@@ -280,7 +280,10 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                         plugin.getLogger().severe("yt-dlp exited with code: " + ytDlpExitCode);
                     }
                 } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
                     player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error downloading or converting music.");
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Make sure yt-dlp has the correct execute permissions.");
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "If your Minecraft server is hosted online, make sure your hosting provider allows the execution of binary files.");
                 }
             }).start();
             return true;
