@@ -1,5 +1,5 @@
-## 1.21+ URLCustomDiscs plugin (+ server resource pack)
-Last updated on April 24, 2025.
+## 1.21.0-1 URLCustomDiscs plugin (+ server resource pack)
+Last updated on May 13, 2025.
 
 <img src="https://github.com/TheoDgb/URLCustomDiscs/blob/main/media/URLCustomDiscs_icon.png?raw=true" alt="URLCustomDiscs Icon" style="width: 10%;">
 
@@ -16,7 +16,8 @@ Important:
 - Currently works on Windows and Linux due to dependencies.
 - Make sure to use a direct video link without parameters (such as playlist, timecode, etc.), or you might be in for a surprise. Delete everything starting from & in the URL.
 
-Note: plugin tested on 1.21+ Spigot, Paper and Arclight servers
+Note: plugin tested on 1.21.0-1 Spigot, Paper and Arclight servers <br>
+--Partially works in 1.21.4: discs can be created, deleted, and played using vanilla commands, but don't play as intended in a jukebox.
 
 ## Usage
 <table>
@@ -98,11 +99,34 @@ You'll need to host the **URLCustomDiscsPack.zip** server resource pack on a **p
 Here are two tutorials for setting up a **personal local HTTP server** (Windows / Linux). These tutorials cover how to make your **personal local HTTP server** work with both local and online Minecraft servers.
 
 ### Router Configuration
-- Access your router's configuration interface to:
-  - configure a NAT/PAT rule for TCP port forwarding, setting both internal and external ports to 80, and using the public IP address of the machine running the Apache HTTP server (you can quickly find it on websites like [WhatIsMyIp.com](https://www.whatismyip.com/));
-  - open TCP port 80, which is the default for HTTP traffic, in your firewall to allow incoming connections.
+- Access your router's interface to:
+  - configure a NAT/PAT rule for TCP port forwarding, setting both internal and external ports to 80, and using the **private IP address** of the machine running the **Apache HTTP server**;
+  - open TCP port 80, which is the default for HTTP traffic, in your firewall to allow incoming connections to the machine running the Apache server.
+<details>
+<summary><b>More details and example with an Orange modem-router</b></summary>
+
+- Access your router's interface
+  <img src="/media/router_example_1_router_interface.png" alt="router_example_1_router_interface">
+- In your router's network settings, configure a NAT/PAT rule to forward TCP port 80 (both internal and external) to the **private IPv4 address** of the machine running the **Apache HTTP server**.
+  - On some routers, you may not be able to directly select a device by its name from a list. In that case, you'll need to manually enter the **private IPv4 address** of the machine running the **Apache HTTP server**. Make sure that this address is either statically assigned or reserved via DHCP on the router, so it doesn't change over time.
+  - To find the **private IPv4 (or IPv6) address** of your machine:
+    - on Windows, open the command prompt and type: ```ipconfig```
+    - on Linux, open a terminal and type: ```ip a```
+
+  <img src="/media/router_example_2_access_router_network.png" alt="router_example_2_access_router_network">
+  <img src="/media/router_example_3_get_private_ipv4.png" alt="router_example_3_get_private_ipv4">
+  <img src="/media/router_example_4_port_forwarding.png" alt="router_example_4_port_forwarding">
+- In your router's firewall, open TCP port 80, which is the default for HTTP traffic, to allow incoming connections to the **private IPv4 (or IPv6) address** of the machine running the **Apache HTTP server**.
+  <img src="/media/router_example_5_access_router_firewall.png" alt="router_example_5_access_router_firewall">
+  <img src="/media/router_example_6_open_port.png" alt="router_example_6_open_port">
+</details>
+
+Router NAT Loopback Limitation (Local Access Issue): <br>
+- If you are using a setup where the **Apache HTTP server** and the Minecraft game are running on **two different machines on the same local network**, and everything is correctly installed and configured but **you** (the server owner) don't receive the server resource pack while other players do, your router may not support **NAT loopback**. This means that if a machine on the local network tries to access the **public IP address** of the router to reach another local machine, the connection may fail. This issue **only affects connections from inside your local network**. <br>
+- To work around this, you can manually download the server resource pack via the **private IPv4 address**: http://your_private_ipv4/URLCustomDiscsPack.zip. Then place it in your .minecraft/resourcepacks/ folder to use it as a classic resource pack. However, you'll need to **reinstall it manually** each time a disc is created or deleted in order to stay up to date.
 
 ### Personal Local HTTP Server
+For the following steps, you'll need the **public IPv4 address** of your network (assigned by your ISP). You can quickly find it on websites like [WhatIsMyIp.com](https://www.whatismyip.com/). This is the address external users will use to reach the machine running the **Apache HTTP server**.
 <details>
 <summary><b>Create an Apache server on Windows</b></summary>
 
