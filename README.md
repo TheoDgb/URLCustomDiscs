@@ -123,7 +123,7 @@ Here are two tutorials for setting up a **personal local HTTP server** (Windows 
 
 Router NAT Loopback Limitation (Local Access Issue): <br>
 - If you are using a setup where the **Apache HTTP server** and the Minecraft game are running on **two different machines on the same local network**, and everything is correctly installed and configured but **you** (the server owner) don't receive the server resource pack while other players do, your router may not support **NAT loopback**. This means that if a machine on the local network tries to access the **public IP address** of the router to reach another local machine, the connection may fail. This issue **only affects connections from inside your local network**. <br>
-- To work around this, you can manually download the server resource pack via the **private IPv4 address**: http://your_private_ipv4/URLCustomDiscsPack.zip. Then place it in your .minecraft/resourcepacks/ folder to use it as a classic resource pack. However, you'll need to **reinstall it manually** each time a disc is created or deleted in order to stay up to date.
+- To work around this, you can manually download the server resource pack via the **private IPv4 address**: [http://your_private_ipv4/URLCustomDiscsPack.zip](). Then place it in your .minecraft/resourcepacks/ folder to use it as a classic resource pack. However, you'll need to **reinstall it manually** each time a disc is created or deleted in order to stay up to date.
 
 ### Personal Local HTTP Server
 For the following steps, you'll need the **public IPv4 address** of your network (assigned by your ISP). You can quickly find it on websites like [WhatIsMyIp.com](https://www.whatismyip.com/). This is the address external users will use to reach the machine running the **Apache HTTP server**.
@@ -172,7 +172,7 @@ Your **personal local HTTP server** now works with a locally-hosted Minecraft se
     `AddType application/x-httpd-php .php`
 - In C:/Apache24/htdocs/, create an info.php file with the following content: <br>
   `<?php phpinfo(); ?>`
-- Restart Apache, then try to access http://your_public_ip:80/info.php.
+- Restart Apache, then try to access [http://your_public_ip:80/info.php]().
   - If PHP is correctly installed and configured, you should see a page with PHP configuration details, meaning PHP is working with Apache.
 - In C:/Apache24/htdocs/, create an upload.php file with the following content:
 ```
@@ -239,7 +239,7 @@ Your **personal local HTTP server** now works with a locally-hosted Minecraft se
   `sudo chown -R <your_user>:<your_user> /var/www/html`
 - In C:/Apache24/htdocs/, create an info.php file with the following content: <br>
   `<?php phpinfo(); ?>`
-- Restart Apache, then try to access http://your_public_ip:80/info.php.
+- Restart Apache, then try to access [http://your_public_ip:80/info.php]().
   - If PHP is correctly installed and configured, you should see a page with PHP configuration details, meaning PHP is working with Apache.
 - In /var/www/html/, create an upload.php file with the following content:
 ```
