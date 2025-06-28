@@ -94,6 +94,16 @@ Important:
   The Apache server setup on a VPS is not covered in this guide (locally only). Configuring the IP, ports, firewall, and other related settings is the user's responsibility, as these can vary depending on the VPS provider. However, the steps to set up an Apache server remain the same on a VPS.
   Just make sure to configure your firewall and open the necessary ports, as VPS environments usually require manual network setup.
 
+The following shared Minecraft hosting providers have been tested or confirmed to allow the execution of binary files (yt-dlp / FFmpeg):
+- Compatible:
+  - ElypseCloud allows you to upload custom binaries via FileZilla or SSH directly to your Minecraft server's plugin folder, and also lets you grant execution permissions through its built-in file manager (tested in 2025).
+- Not compatible:
+  - Shockbyte shared hosting environments block the execution of external or custom binaries (tested in 2025).
+
+Note: If you've confirmed compatibility or incompatibility with another shared Minecraft hosting provider, feel free to let me know on the [UrlCustomDiscs Discord](https://discord.gg/tdWztKWzcm) so I can update the list!
+
+**THAT BEING SAID,**
+
 You'll need to host the **URLCustomDiscsPack.zip** server resource pack on a **personal local HTTP server** that the plugin can access and edit. Using an online file hosting service (such as [MCPacks](https://mc-packs.net/)) will not work.
 
 Here are two tutorials for setting up a **personal local HTTP server** (Windows / Linux). These tutorials cover how to make your **personal local HTTP server** work with both local and online Minecraft servers.
@@ -279,13 +289,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 - Restart your Minecraft server
 
 ## Dependencies Installation Guide
-- Download the **yt-dlp** executable from [yt-dlp GitHub](https://github.com/yt-dlp/yt-dlp#installation) ([**Windows**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe), [**Linux (requires Python to be installed)**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp), [**Linux (standalone but larger in size and must be renamed to "yt-dlp")**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux)) and place it in your_mc_server_folder/plugins/URLCustomDiscs/
-  - If your Minecraft server is on Linux, grant execution permissions to yt-dlp with: `chmod +x yt-dlp`
-- Download **FFmpeg** from [FFmpeg GitHub](https://github.com/BtbN/FFmpeg-Builds/releases) ([**Windows**](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip), [**Linux**](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl-shared.tar.xz)), extract it in your_mc_server_folder/plugins/URLCustomDiscs/, and rename the folder to "FFmpeg":
-  - Example for Windows users:
-    - Download "ffmpeg-master-latest-win64-gpl-shared.zip".
-    - Extract the .zip archive in your_mc_server_folder/plugins/URLCustomDiscs/
-    - Rename the "ffmpeg-master-latest-win64-gpl-shared" folder to "FFmpeg".
+### Download **yt-dlp**
+- Get the **yt-dlp** executable from [yt-dlp GitHub](https://github.com/yt-dlp/yt-dlp#installation):
+  - [**Windows**](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe)
+  - [**Linux** (requires Python to run)](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp)
+  - [**Linux** (standalone but larger in size)](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux)
+    - Rename the standalone version to "yt-dlp".
+- Place it in your_mc_server_folder/plugins/URLCustomDiscs/
+- If your Minecraft server is on Linux, grant execution permissions to yt-dlp with: `chmod +x yt-dlp`
+
+### Download **FFmpeg**
+- Get **FFmpeg** from [FFmpeg GitHub](https://github.com/BtbN/FFmpeg-Builds/releases):
+  - [**Windows** (Shared build)](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip)
+  - [**Linux** (Shared build)](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl-shared.tar.xz)
+  - [**Linux** (Static build - recommended)](https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz) from [FFmpeg Static Builds](https://johnvansickle.com/ffmpeg/)
+- Extract it in your_mc_server_folder/plugins/URLCustomDiscs/
+- Rename the folder to "FFmpeg".
+- If you downloaded the Linux static build, you must perform this extra step for compatibility with the plugin:
+  - Create a new "bin" directory inside the "FFmpeg" folder.
+  - Move all files and folders from FFmpeg/ into FFmpeg/bin/
+- If your Minecraft server is on Linux, grant execution permissions to FFmpeg with: `chmod +x FFmpeg/bin/ffmpeg`
 
 ## Tree Structures
 <details>
