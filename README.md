@@ -1,5 +1,5 @@
 ## 1.21.0-1 URLCustomDiscs plugin (+ server resource pack)
-Last updated on June 28, 2025.
+Last updated on June 29, 2025.
 
 <img src="https://github.com/TheoDgb/URLCustomDiscs/blob/main/media/URLCustomDiscs_icon.png?raw=true" alt="URLCustomDiscs Icon" style="width: 10%;">
 
@@ -296,7 +296,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
   - [**Linux** (standalone but larger in size)](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux)
     - Rename the standalone version to "yt-dlp".
 - Place it in your_mc_server_folder/plugins/URLCustomDiscs/
-- If your Minecraft server is on Linux, grant execution permissions to yt-dlp with: `chmod +x yt-dlp`
+- If your Minecraft server is on Linux, grant execution permissions to yt-dlp using a terminal or SSH connection with the following command: `chmod +x plugins/URLCustomDiscs/yt-dlp`
+- If you are using a shared Minecraft hosting provider:
+  - Many shared Minecraft hosting providers also run on Linux. Some of them may provide access to a web-based terminal or SSH, which might allow you to run commands like `chmod`, depending on the permissions granted.
+  - In some cases, it may also be possible to set the executable permission using the file manager in the hosting panel.
+  - Refer to the list of compatible shared Minecraft hosting providers (tested by me and/or users of the plugin) in the [Servers Guide](#servers-guide), to check if your host allows this.
+    - If your host isn't listed, please refer to their documentation or contact their support to know whether setting executable permissions is supported.
 
 ### Download **FFmpeg**
 - Get **FFmpeg** from [FFmpeg GitHub](https://github.com/BtbN/FFmpeg-Builds/releases):
@@ -308,7 +313,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
 - If you downloaded the Linux static build, you must perform this extra step for compatibility with the plugin:
   - Create a new "bin" directory inside the "FFmpeg" folder.
   - Move all files and folders from FFmpeg/ into FFmpeg/bin/
-- If your Minecraft server is on Linux, grant execution permissions to FFmpeg with: `chmod +x FFmpeg/bin/ffmpeg`
+- If your Minecraft server is on Linux, grant execution permissions to FFmpeg using a terminal or SSH connection with the following command: `chmod +x plugins/URLCustomDiscs/FFmpeg/bin/ffmpeg`
+- If you are using a shared Minecraft hosting provider, the same notes apply as above for yt-dlp, regarding Linux-based hosting environments, terminal access, and executable permission setup.
 
 ## Tree Structures
 <details>
