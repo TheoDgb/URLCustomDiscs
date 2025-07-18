@@ -99,6 +99,7 @@ The following shared Minecraft hosting providers have been tested or confirmed t
   - ElypseCloud allows you to upload custom binaries via FileZilla or SSH directly to your Minecraft server's plugin folder, and also lets you grant execution permissions through its built-in file manager (tested in 2025).
 - Not compatible:
   - Shockbyte shared hosting environments block the execution of external or custom binaries (tested in 2025).
+  - exaroton (tested in 2025)
 
 Note: If you've confirmed compatibility or incompatibility with another shared Minecraft hosting provider, feel free to let me know on the [UrlCustomDiscs Discord](https://discord.gg/tdWztKWzcm) so I can update the list!
 
