@@ -35,16 +35,20 @@ import java.util.UUID;
 public class CommandURLCustomDiscs implements CommandExecutor {
 
     private final URLCustomDiscs plugin;
+    private final RemoteApiClient remoteApiClient;
     private final File discUuidFile;
     private final String os;
+    private final String pluginUsageMode;
     private final String downloadResourcePackURL;
     private final String minecraftServerType;
     private final String zipFilePath;
 
-    public CommandURLCustomDiscs(URLCustomDiscs plugin) {
+    public CommandURLCustomDiscs(URLCustomDiscs plugin, RemoteApiClient remoteApiClient) {
         this.plugin = plugin;
+        this.remoteApiClient = remoteApiClient;
         this.discUuidFile = new File(plugin.getDataFolder(), "discs.json");
         this.os = plugin.getOperatingSystem();
+        this.pluginUsageMode = plugin.getPluginUsageMode();
         this.downloadResourcePackURL = plugin.getDownloadResourcePackURL();
         this.minecraftServerType = plugin.getMinecraftServerType();
         this.zipFilePath = plugin.getZipFilePath();
@@ -102,191 +106,237 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             final String displayName = rawDiscName;
             final String discName = displayName.toLowerCase();
 
-            // Créer les fichiers mp3 et ogg
-            File musicFolder = new File(plugin.getDataFolder(), "music");
-            if (!musicFolder.exists()) musicFolder.mkdirs();
-
-            String mp3FileName = discName + ".mp3";
-            File mp3File = new File(musicFolder, mp3FileName);
-
-            String oggFileName = discName + ".ogg";
-            File oggFile = new File(musicFolder, oggFileName);
-
-            // Supprimer les fichiers existants s'ils sont déjà présents
-            if (mp3File.exists()) mp3File.delete();
-            if (oggFile.exists()) oggFile.delete();
-
-            new Thread(() -> {
+            if (pluginUsageMode.equalsIgnoreCase("remote")) {
+                // Load the discs JSON file
+                JSONObject discInfo = null;
                 try {
-                    // Selecting executables based on OS
-                    String ytDlpExecutable = "";
-                    String ffmpegExecutable = "";
-                    if (os.contains("win")) { // Windows
-                        ytDlpExecutable = "./plugins/URLCustomDiscs/yt-dlp.exe";
-                        ffmpegExecutable = "./plugins/URLCustomDiscs/FFmpeg/bin/ffmpeg.exe";
-                    } else if (os.contains("nix") || os.contains("nux") || os.contains("mac")) { // Linux (and macOS CURRENTLY NOT SUPPORTED)
-                        ytDlpExecutable = "./plugins/URLCustomDiscs/yt-dlp";
-                        ffmpegExecutable = "./plugins/URLCustomDiscs/FFmpeg/bin/ffmpeg";
+                    JSONObject discData;
+                    if (discUuidFile.exists()) {
+                        String content = Files.readString(discUuidFile.toPath());
+                        discData = new JSONObject(content);
+                    } else {
+                        discData = new JSONObject();
                     }
 
-                    // Check for the existence of yt-dlp and FFmpeg
-                    File ytDlpFile = new File(ytDlpExecutable);
-                    File ffmpegFile = new File(ffmpegExecutable);
-                    if (!ytDlpFile.exists()) {
-                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error: yt-dlp was not found. Make sure you have installed it in your_mc_server_folder/plugins/URLCustomDiscs/");
-                        return;
-                    }
-                    if (!ffmpegFile.exists()) {
-                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error: FFmpeg was not found. Make sure you have installed it in your_mc_server_folder/plugins/URLCustomDiscs/");
-                        return;
-                    }
+                    // Check if the disc already exists in JSON file
+                    if (discData.has(discName)) { // Retrieve existing information
+                        discInfo = discData.getJSONObject(discName);
+                    } else { // Generate a new UUID for the disc
+                        String newUUID = UUID.randomUUID().toString();
+                        discInfo = new JSONObject();
+                        discInfo.put("uuid", newUUID);
 
-                    // Download audio
-                    player.sendMessage(ChatColor.GRAY + "Downloading URL music to MP3...");
-                    plugin.getLogger().info("Downloading URL music to MP3...");
-                    ProcessBuilder ytDlp = new ProcessBuilder(ytDlpExecutable, "-f", "bestaudio[ext=m4a]/best",
-                            "--audio-format", "mp3", "-o", mp3File.getAbsolutePath(), url);
-                    Process ytDlpProcess = ytDlp.start();
+                        // Calculate customModelData from UUID
+                        // Removes dashes from the UUID, Takes the first 8 hexadecimal characters, Converts that part of the UUID to a long number, Keeps a positive number within the limit of int
+                        int customModelData = (int) (Long.parseLong(newUUID.replace("-", "").substring(0, 8), 16) & 0x7FFFFFFF);
+                        discInfo.put("customModelData", customModelData);
+                        discInfo.put("displayName", displayName);
 
-                    // Lire la sortie de yt-dlp pour débogage
-                    Thread ytDlpOutputThread = new Thread(() -> {
-                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(ytDlpProcess.getInputStream()))) {
-                            String line;
-                            while ((line = reader.readLine()) != null) {
-                                plugin.getLogger().info("yt-dlp: " + line); // Affiche la sortie pour débogage
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        // Save the new information to the JSON file
+                        discData.put(discName, discInfo);
+                        Files.writeString(discUuidFile.toPath(), discData.toString(4));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                final JSONObject discInfoFinal = discInfo;
+
+                if (plugin.getToken().isEmpty()) {
+                    remoteApiClient.requestTokenFromRemoteServer(player, () -> {
+                        remoteApiClient.createCustomDiscRemotely(player, url, discName, audioType, discInfoFinal, plugin.getToken());
                     });
-                    ytDlpOutputThread.start();
+                } else {
+                    remoteApiClient.createCustomDiscRemotely(player, url, discName, audioType, discInfoFinal, plugin.getToken());
+                }
+                return true;
+            } else if (pluginUsageMode.equalsIgnoreCase("local")) {
+                // Créer les fichiers mp3 et ogg
+                File musicFolder = new File(plugin.getDataFolder(), "music");
+                if (!musicFolder.exists()) musicFolder.mkdirs();
 
-                    int ytDlpExitCode = ytDlpProcess.waitFor(); // Attendre la fin du téléchargement
-                    ytDlpOutputThread.join(); // S'assurer que la lecture de la sortie est terminée
+                String mp3FileName = discName + ".mp3";
+                File mp3File = new File(musicFolder, mp3FileName);
 
-                    if (ytDlpExitCode == 0) {
-                        // This plugin uses libraries from the FFmpeg project under the LGPLv2.1
-                        // Convertir le fichier mp3 en ogg mono ou stereo
-                        player.sendMessage(ChatColor.GRAY + "Converting MP3 to Ogg...");
-                        plugin.getLogger().info("Converting MP3 to Ogg...");
-                        ProcessBuilder ffmpeg;
-                        if (audioType.equals("mono")) {
-                            ffmpeg = new ProcessBuilder(ffmpegExecutable, "-i", mp3File.getAbsolutePath(), "-ac", "1", "-c:a", "libvorbis", oggFile.getAbsolutePath());
-                        } else if (audioType.equals("stereo")) {
-                            ffmpeg = new ProcessBuilder(ffmpegExecutable, "-i", mp3File.getAbsolutePath(), "-c:a", "libvorbis", oggFile.getAbsolutePath());
-                        } else {
-                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Invalid audio type, use 'mono' or 'stereo'.");
+                String oggFileName = discName + ".ogg";
+                File oggFile = new File(musicFolder, oggFileName);
+
+                // Supprimer les fichiers existants s'ils sont déjà présents
+                if (mp3File.exists()) mp3File.delete();
+                if (oggFile.exists()) oggFile.delete();
+
+                new Thread(() -> {
+                    try {
+                        // Selecting executables based on OS
+                        String ytDlpExecutable = "";
+                        String ffmpegExecutable = "";
+                        if (os.contains("win")) { // Windows
+                            ytDlpExecutable = "./plugins/URLCustomDiscs/yt-dlp.exe";
+                            ffmpegExecutable = "./plugins/URLCustomDiscs/FFmpeg/bin/ffmpeg.exe";
+                        } else if (os.contains("nix") || os.contains("nux") || os.contains("mac")) { // Linux (and macOS CURRENTLY NOT SUPPORTED)
+                            ytDlpExecutable = "./plugins/URLCustomDiscs/yt-dlp";
+                            ffmpegExecutable = "./plugins/URLCustomDiscs/FFmpeg/bin/ffmpeg";
+                        }
+
+                        // Check for the existence of yt-dlp and FFmpeg
+                        File ytDlpFile = new File(ytDlpExecutable);
+                        File ffmpegFile = new File(ffmpegExecutable);
+                        if (!ytDlpFile.exists()) {
+                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error: yt-dlp was not found. Make sure you have installed it in your_mc_server_folder/plugins/URLCustomDiscs/");
                             return;
                         }
-                        Process ffmpegProcess = ffmpeg.start();
+                        if (!ffmpegFile.exists()) {
+                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error: FFmpeg was not found. Make sure you have installed it in your_mc_server_folder/plugins/URLCustomDiscs/");
+                            return;
+                        }
 
-                        // Lire la sortie de ffmpeg pour débogage
-                        new Thread(() -> {
-                            try (BufferedReader reader = new BufferedReader(new InputStreamReader(ffmpegProcess.getInputStream()))) {
+                        // Download audio
+                        player.sendMessage(ChatColor.GRAY + "Downloading URL music to MP3...");
+                        plugin.getLogger().info("Downloading URL music to MP3...");
+                        ProcessBuilder ytDlp = new ProcessBuilder(ytDlpExecutable, "-f", "bestaudio[ext=m4a]/best",
+                                "--audio-format", "mp3", "-o", mp3File.getAbsolutePath(), url);
+                        Process ytDlpProcess = ytDlp.start();
+
+                        // Lire la sortie de yt-dlp pour débogage
+                        Thread ytDlpOutputThread = new Thread(() -> {
+                            try (BufferedReader reader = new BufferedReader(new InputStreamReader(ytDlpProcess.getInputStream()))) {
                                 String line;
                                 while ((line = reader.readLine()) != null) {
-                                    plugin.getLogger().info("FFmpeg stdout: " + line); // Affiche la sortie pour débogage
+                                    plugin.getLogger().info("yt-dlp: " + line); // Affiche la sortie pour débogage
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                        }).start();
+                        });
+                        ytDlpOutputThread.start();
 
-                        // Lire les erreurs de ffmpeg pour débogage
-                        new Thread(() -> {
-                            try (BufferedReader reader = new BufferedReader(new InputStreamReader(ffmpegProcess.getErrorStream()))) {
-                                String line;
-                                while ((line = reader.readLine()) != null) {
-                                    plugin.getLogger().info("ffmpeg stderr: " + line); // Affiche les erreurs pour débogage
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                        int ytDlpExitCode = ytDlpProcess.waitFor(); // Attendre la fin du téléchargement
+                        ytDlpOutputThread.join(); // S'assurer que la lecture de la sortie est terminée
+
+                        if (ytDlpExitCode == 0) {
+                            // This plugin uses libraries from the FFmpeg project under the LGPLv2.1
+                            // Convertir le fichier mp3 en ogg mono ou stereo
+                            player.sendMessage(ChatColor.GRAY + "Converting MP3 to Ogg...");
+                            plugin.getLogger().info("Converting MP3 to Ogg...");
+                            ProcessBuilder ffmpeg;
+                            if (audioType.equals("mono")) {
+                                ffmpeg = new ProcessBuilder(ffmpegExecutable, "-i", mp3File.getAbsolutePath(), "-ac", "1", "-c:a", "libvorbis", oggFile.getAbsolutePath());
+                            } else if (audioType.equals("stereo")) {
+                                ffmpeg = new ProcessBuilder(ffmpegExecutable, "-i", mp3File.getAbsolutePath(), "-c:a", "libvorbis", oggFile.getAbsolutePath());
+                            } else {
+                                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Invalid audio type, use 'mono' or 'stereo'.");
+                                return;
                             }
-                        }).start();
+                            Process ffmpegProcess = ffmpeg.start();
 
-                        int ffmpegExitCode = ffmpegProcess.waitFor(); // Attendre la fin de la conversion
-
-                        if (ffmpegExitCode == 0) {
-                            // Suppression du fichier .mp3 après conversion si nécessaire
-                            if (mp3File.exists()) mp3File.delete();
-                            player.sendMessage(ChatColor.GRAY + "Music downloaded and converted.");
-                            plugin.getLogger().info("Music downloaded and converted.");
-
-                            // Add .ogg to server resource pack zip
-                            if (minecraftServerType.equals("local")) {
-                                addFileToZip(zipFilePath, oggFile, "assets/minecraft/sounds/custom/" + oggFile.getName());
-                                // Delete the .ogg file after update
-                                if (oggFile.delete()) {
-                                    plugin.getLogger().info("Deleted Ogg file from music folder.");
-
-                                    // Met à jour sounds.json
-                                    updateSoundsJson(discName);
-                                    // Créer et donner le disque personnalisé au joueur
-                                    createCustomMusicDisc(player, discName, displayName);
-                                } else {
-                                    plugin.getLogger().severe("Error deleting Ogg file from music folder.");
+                            // Lire la sortie de ffmpeg pour débogage
+                            new Thread(() -> {
+                                try (BufferedReader reader = new BufferedReader(new InputStreamReader(ffmpegProcess.getInputStream()))) {
+                                    String line;
+                                    while ((line = reader.readLine()) != null) {
+                                        plugin.getLogger().info("FFmpeg stdout: " + line); // Affiche la sortie pour débogage
+                                    }
+                                } catch (IOException e) {
+                                    e.printStackTrace();
                                 }
-                            } else if (minecraftServerType.equals("online")) {
-                                ResourcePackManager rpm = plugin.getResourcePackManager(); // Récupérer l'instance existante
+                            }).start();
 
-                                // Download the server resource pack
-                                if (rpm.downloadResourcePack()) {
-                                    player.sendMessage(ChatColor.GRAY + "Server resource pack downloaded.");
+                            // Lire les erreurs de ffmpeg pour débogage
+                            new Thread(() -> {
+                                try (BufferedReader reader = new BufferedReader(new InputStreamReader(ffmpegProcess.getErrorStream()))) {
+                                    String line;
+                                    while ((line = reader.readLine()) != null) {
+                                        plugin.getLogger().info("ffmpeg stderr: " + line); // Affiche les erreurs pour débogage
+                                    }
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }).start();
 
-                                    // Add music.ogg
-                                    if (rpm.addFileToResourcePack(oggFile, "assets/minecraft/sounds/custom/" + oggFile.getName())) {
-                                        player.sendMessage(ChatColor.GRAY + "Ogg file added to the server resource pack.");
+                            int ffmpegExitCode = ffmpegProcess.waitFor(); // Attendre la fin de la conversion
 
-                                        // Delete the .ogg file from the music folder after update
-                                        if (oggFile.delete()) {
-                                            plugin.getLogger().info("Ogg file deleted from music folder.");
+                            if (ffmpegExitCode == 0) {
+                                // Suppression du fichier .mp3 après conversion si nécessaire
+                                if (mp3File.exists()) mp3File.delete();
+                                player.sendMessage(ChatColor.GRAY + "Music downloaded and converted.");
+                                plugin.getLogger().info("Music downloaded and converted.");
 
-                                            // Create custom disc (updateSoundsJson / updateDiscModelJson / createCustomMusicDiscJson)
-                                            if (rpm.createCustomMusicDisc(player, discName, displayName)) {
-                                                player.sendMessage(ChatColor.GRAY + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GRAY + " created.");
+                                // Add .ogg to server resource pack zip
+                                if (minecraftServerType.equals("local")) {
+                                    addFileToZip(zipFilePath, oggFile, "assets/minecraft/sounds/custom/" + oggFile.getName());
+                                    // Delete the .ogg file after update
+                                    if (oggFile.delete()) {
+                                        plugin.getLogger().info("Deleted Ogg file from music folder.");
 
-                                                // Upload the server resource pack
-                                                if (rpm.uploadResourcePack()) {
-                                                    player.sendMessage(ChatColor.GRAY + "Server resource pack uploaded.");
+                                        // Met à jour sounds.json
+                                        updateSoundsJson(discName);
+                                        // Créer et donner le disque personnalisé au joueur
+                                        createCustomMusicDisc(player, discName, displayName);
+                                    } else {
+                                        plugin.getLogger().severe("Error deleting Ogg file from music folder.");
+                                    }
+                                } else if (minecraftServerType.equals("online")) {
+                                    ResourcePackManager rpm = plugin.getResourcePackManager(); // Récupérer l'instance existante
+
+                                    // Download the server resource pack
+                                    if (rpm.downloadResourcePack()) {
+                                        player.sendMessage(ChatColor.GRAY + "Server resource pack downloaded.");
+
+                                        // Add music.ogg
+                                        if (rpm.addFileToResourcePack(oggFile, "assets/minecraft/sounds/custom/" + oggFile.getName())) {
+                                            player.sendMessage(ChatColor.GRAY + "Ogg file added to the server resource pack.");
+
+                                            // Delete the .ogg file from the music folder after update
+                                            if (oggFile.delete()) {
+                                                plugin.getLogger().info("Ogg file deleted from music folder.");
+
+                                                // Create custom disc (updateSoundsJson / updateDiscModelJson / createCustomMusicDiscJson)
+                                                if (rpm.createCustomMusicDisc(player, discName, displayName)) {
+                                                    player.sendMessage(ChatColor.GRAY + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GRAY + " created.");
+
+                                                    // Upload the server resource pack
+                                                    if (rpm.uploadResourcePack()) {
+                                                        player.sendMessage(ChatColor.GRAY + "Server resource pack uploaded.");
+                                                    } else {
+                                                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error uploading the server resource pack.");
+                                                    }
                                                 } else {
-                                                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error uploading the server resource pack.");
+                                                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error creating the custom disc.");
                                                 }
                                             } else {
-                                                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error creating the custom disc.");
+                                                plugin.getLogger().severe("Error deleting Ogg file from music folder.");
                                             }
                                         } else {
-                                            plugin.getLogger().severe("Error deleting Ogg file from music folder.");
+                                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error adding the music to the server resource pack.");
                                         }
                                     } else {
-                                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error adding the music to the server resource pack.");
+                                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error downloading the server resource pack.");
                                     }
-                                } else {
-                                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error downloading the server resource pack.");
                                 }
-                            }
 
-                            // Parcourir tous les joueurs en ligne et leur envoyer le pack de ressources
-                            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                                onlinePlayer.setResourcePack(downloadResourcePackURL);
+                                // Parcourir tous les joueurs en ligne et leur envoyer le pack de ressources
+                                for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                                    onlinePlayer.setResourcePack(downloadResourcePackURL);
+                                }
+                            } else {
+                                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error converting to Ogg with FFmpeg.");
+                                plugin.getLogger().severe("FFmpeg exited with code: " + ffmpegExitCode);
                             }
                         } else {
-                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error converting to Ogg with FFmpeg.");
-                            plugin.getLogger().severe("FFmpeg exited with code: " + ffmpegExitCode);
+                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error downloading the MP3 file with yt-dlp.");
+                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "An error may have occurred, please try again.");
+                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "If the error persists, your yt-dlp may be outdated, and a new version may be available: https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation");
+                            plugin.getLogger().severe("yt-dlp exited with code: " + ytDlpExitCode);
                         }
-                    } else {
-                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error downloading the MP3 file with yt-dlp.");
-                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "An error may have occurred, please try again.");
-                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "If the error persists, your yt-dlp may be outdated, and a new version may be available: https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation");
-                        plugin.getLogger().severe("yt-dlp exited with code: " + ytDlpExitCode);
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error downloading or converting music.");
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Make sure yt-dlp has the correct execute permissions.");
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "If your Minecraft server is hosted online, make sure your hosting provider allows the execution of binary files.");
                     }
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
-                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error downloading or converting music.");
-                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Make sure yt-dlp has the correct execute permissions.");
-                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "If your Minecraft server is hosted online, make sure your hosting provider allows the execution of binary files.");
-                }
-            }).start();
-            return true;
+                }).start();
+                return true;
+            }
         }
 
         // Commande pour se give un disque existant

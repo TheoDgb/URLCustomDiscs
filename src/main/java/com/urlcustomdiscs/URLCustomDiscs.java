@@ -13,11 +13,16 @@ import java.util.Objects;
 public class URLCustomDiscs extends JavaPlugin {
     private File discUuidFile;
     private File editResourcePackFolder;
+    private String pluginUsageMode;
+    private String apiBaseURL;
+    private String token;
+    private String downloadPackURL;
     private String downloadResourcePackURL;
     private String minecraftServerType;
     private String zipFilePath;
     private String uploadResourcePackURL;
     private final String os = System.getProperty("os.name").toLowerCase();
+    private RemoteApiClient  remoteApiClient;
     private ResourcePackManager resourcePackManager;
 
     @Override
@@ -28,11 +33,12 @@ public class URLCustomDiscs extends JavaPlugin {
         loadFiles(); // Charger ou créer les dossiers
         loadConfig(); // Charger ou créer le fichier de configuration
 
+        remoteApiClient = new RemoteApiClient(this, getApiBaseURL());
         resourcePackManager = new ResourcePackManager(discUuidFile, editResourcePackFolder, downloadResourcePackURL, uploadResourcePackURL); // Initialiser l'instance de ResourcePackManager
 
         // downloadDependencies();
 
-        Objects.requireNonNull(this.getCommand("customdisc")).setExecutor(new CommandURLCustomDiscs(this));
+        Objects.requireNonNull(this.getCommand("customdisc")).setExecutor(new CommandURLCustomDiscs(this, remoteApiClient));
 
         getServer().getPluginManager().registerEvents(new JukeboxListener(this), this);
     }
@@ -56,6 +62,25 @@ public class URLCustomDiscs extends JavaPlugin {
                 String configContent =
                         "# Configuration file for URLCustomDiscs plugin.\n" +
                                 "\n" + "\n" +
+                                "# If you want to use the preconfigured server dedicated to the plugin, fill in the pluginUsageMode field with 'remote'.\n" +
+                                "# If you want a personal installation and configuration, fill in the pluginUsageMode field with 'local'.\n" +
+                                "pluginUsageMode: \"remote\"\n" +
+                                "\n" + "\n" +
+                                "# ========== REMOTE MODE CONFIGURATION ==========\n" +
+                                "\n" +
+                                "# API base URL used to make requests to the remote server.\n" +
+                                "apiBaseURL: \"http://localhost:3000\"\n" +
+                                "\n" +
+                                "# Unique token automatically created if pluginUsageMode is 'remote' for identification to the remote server.\n" +
+                                "token: \"\"\n" +
+                                "\n" +
+                                "# Download pack URL using the token to find your URLCustomDiscsPack.\n" +
+                                "downloadPackURL: \"\"\n" +
+                                "# Once your token and downloadPackURL are generated, fill in the 'resource-pack=' field in your Minecraft server's 'server.properties' file by following the example below.\n" +
+                                "# Example: resource-pack=YOUR_downloadPackURL\n" +
+                                "\n" + "\n" +
+                                "# ========== LOCAL MODE CONFIGURATION ==========\n" +
+                                "\n" +
                                 "# downloadResourcePackURL: Download URL of the URLCustomDiscsPack.zip resource pack from your personal local web server to update it for players.\n" +
                                 "# Example: http://11.111.11.1:80/URLCustomDiscsPack.zip\n" +
                                 "downloadResourcePackURL: \"http://11.111.11.1:80/URLCustomDiscsPack.zip\"\n" +
@@ -84,12 +109,19 @@ public class URLCustomDiscs extends JavaPlugin {
             }
         }
         FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+        pluginUsageMode = config.getString("pluginUsageMode");
+        apiBaseURL = config.getString("apiBaseURL");
+        token = config.getString("token");
+        downloadPackURL = config.getString("downloadPackURL");
         downloadResourcePackURL = config.getString("downloadResourcePackURL");
         minecraftServerType = config.getString("minecraftServerType");
         zipFilePath = config.getString("zipFilePath");
         uploadResourcePackURL = config.getString("uploadResourcePackURL");
 
-        if (downloadResourcePackURL == null) {
+        if (pluginUsageMode == null) {
+            getLogger().warning("config.yml ERROR : The plugin usage mode is not defined.");
+        }
+        else if (downloadResourcePackURL == null) {
             getLogger().warning("config.yml ERROR : Download resource pack URL is not configured.");
         }
         else if (!Objects.equals(minecraftServerType, "local") && !Objects.equals(minecraftServerType, "online")) {
@@ -129,17 +161,15 @@ public class URLCustomDiscs extends JavaPlugin {
         if (!musicFolder.exists()) musicFolder.mkdirs();
     }
 
-    public String getDownloadResourcePackURL() {
-        return downloadResourcePackURL;
-    }
-
+    // Getters / Setters
+    public String getPluginUsageMode() { return pluginUsageMode; }
+    public String getApiBaseURL() { return apiBaseURL; }
+    public String getToken() { return this.token != null ? this.token : ""; }
+    public void setToken(String newToken) { this.token = newToken; }
+    public String getDownloadPackURL() { return this.downloadPackURL != null ? this.downloadPackURL : ""; }
+    public void setDownloadPackURL(String newDownloadPackURL) { this.downloadPackURL = newDownloadPackURL; }
+    public String getDownloadResourcePackURL() { return downloadResourcePackURL; }
     public String getMinecraftServerType() { return minecraftServerType; }
-
-    public String getZipFilePath() {
-        return zipFilePath;
-    }
-
-    public ResourcePackManager getResourcePackManager() {
-        return resourcePackManager; // Permet aux autres classes d'y accéder
-    }
+    public String getZipFilePath() { return zipFilePath; }
+    public ResourcePackManager getResourcePackManager() { return resourcePackManager; }
 }
