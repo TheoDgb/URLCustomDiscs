@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -104,13 +105,13 @@ public class RemoteApiClient {
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     try (InputStream responseStream = connection.getInputStream()) {
                         String response = new String(responseStream.readAllBytes(), StandardCharsets.UTF_8);
-                        Bukkit.getScheduler().runTask(plugin, () -> handleApiResponse(player, responseCode, response, discInfo));
+                        Bukkit.getScheduler().runTask(plugin, () -> handleApiResponse(player, responseCode, response, discInfo, null, "create"));
                     }
                 } else {
                     InputStream errorStream = connection.getErrorStream();
                     if (errorStream != null) {
                         String errorResponse = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
-                        Bukkit.getScheduler().runTask(plugin, () -> handleApiResponse(player, responseCode, errorResponse, discInfo));
+                        Bukkit.getScheduler().runTask(plugin, () -> handleApiResponse(player, responseCode, errorResponse, discInfo, null, "create"));
                     } else {
                         Bukkit.getScheduler().runTask(plugin, () -> {
                             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to create disc. HTTP status: " + responseCode);
@@ -129,6 +130,43 @@ public class RemoteApiClient {
         });
     }
 
+    public void deleteCustomDiscRemotely(Player player, String discName, JSONObject discInfo, String token) {
+        player.sendMessage(ChatColor.GRAY + "Sending information to the remote server...");
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                HttpURLConnection connection = createPostConnection("/delete-custom-disc");
+
+                JSONObject payload = new JSONObject();
+                payload.put("discName", discName);
+                payload.put("token", token);
+
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = payload.toString().getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+
+                int responseCode = connection.getResponseCode();
+                String responseBody;
+
+                try (InputStream responseStream = (responseCode >= 400 ? connection.getErrorStream() : connection.getInputStream())) {
+                    responseBody = new String(responseStream.readAllBytes(), StandardCharsets.UTF_8);
+                }
+
+                final String finalResponseBody = responseBody;
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    handleApiResponse(player, responseCode, finalResponseBody, discInfo, discName, "delete");
+                });
+
+            } catch (Exception e) {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    player.sendMessage(ChatColor.RED + "An error occurred while contacting the remote server.");
+                    plugin.getLogger().severe("Exception during remote disc deletion:");
+                });
+                e.printStackTrace();
+            }
+        });
+    }
+
     private HttpURLConnection createPostConnection(String endpoint) throws Exception {
         URL url = new URL(apiBaseURL + endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -138,26 +176,37 @@ public class RemoteApiClient {
         return connection;
     }
 
-    private void handleApiResponse(Player player, int responseCode, String responseBody, JSONObject discInfo) {
+    private void handleApiResponse(Player player, int responseCode, String responseBody, JSONObject discInfo, String discName, String mode) {
         if (responseCode >= 200 && responseCode < 300) {  // HTTP success range
             try {
                 JSONObject json = new JSONObject(responseBody);
                 if (json.has("success") && json.getBoolean("success")) {
                     // Functional success (the API operation completed successfully)
                     String message = json.optString("message", "Operation completed successfully.");
-                    player.sendMessage(ChatColor.GREEN + message);
-                    plugin.getLogger().info("[API SUCCESS] " + message);
 
-                    // Generate the custom disc in memory and add it to the player's inventory
-                    DiscFactory.giveCustomDiscToPlayer(player, discInfo);
+                    String displayName = discInfo.optString("displayName", "unknown");
 
-                    // Browse all online players and send them the resource pack
-                    String downloadPackURL = plugin.getDownloadPackURL();
-                    if (!downloadPackURL.isEmpty()) {
-                        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                            onlinePlayer.sendMessage(ChatColor.GRAY + "A new resource pack will be loaded...");
-                            onlinePlayer.setResourcePack(downloadPackURL);
+                    if (mode.equals("create")) {
+                        player.sendMessage(ChatColor.GREEN + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GREEN + " created.");
+                        plugin.getLogger().info("[API SUCCESS] " + message);
+
+                        // Generate the custom disc in memory and add it to the player's inventory
+                        DiscFactory.giveCustomDiscToPlayer(player, discInfo);
+
+                        // Browse all online players and send them the resource pack
+                        String downloadPackURL = plugin.getDownloadPackURL();
+                        if (!downloadPackURL.isEmpty()) {
+                            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                                onlinePlayer.sendMessage(ChatColor.GRAY + "A new resource pack will be loaded...");
+                                onlinePlayer.setResourcePack(downloadPackURL);
+                            }
                         }
+                    } else if (mode.equals("delete")) {
+                        DiscJsonManager discManager = new DiscJsonManager(plugin);
+                        discManager.deleteDisc(discName);
+
+                        player.sendMessage(ChatColor.GREEN + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GREEN + " deleted.");
+                        plugin.getLogger().info("[API SUCCESS] " + message);
                     }
                 } else {
                     // Functional error (e.g. operation failed even if HTTP status is 200)

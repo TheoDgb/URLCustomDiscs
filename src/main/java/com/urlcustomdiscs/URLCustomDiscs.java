@@ -78,6 +78,9 @@ public class URLCustomDiscs extends JavaPlugin {
                                 "downloadPackURL: \"\"\n" +
                                 "# Once your token and downloadPackURL are generated, fill in the 'resource-pack=' field in your Minecraft server's 'server.properties' file by following the example below.\n" +
                                 "# Example: resource-pack=YOUR_downloadPackURL\n" +
+                                "\n" +
+                                "# Once you have filled 'resource-pack=' and tested that it works, you can force players to install the resource pack by setting the 'require-resource-pack=' field in your Minecraft server's 'server.properties' file to true.\n" +
+                                "# Example: require-resource-pack=true\n" +
                                 "\n" + "\n" +
                                 "# ========== LOCAL MODE CONFIGURATION ==========\n" +
                                 "\n" +

@@ -28,6 +28,6 @@ public class DiscFactory {
         }
 
         player.getInventory().addItem(disc);
-        player.sendMessage(ChatColor.GREEN + "You received your custom disc: " + displayName);
+        player.sendMessage(ChatColor.GREEN + "You received your custom disc: " + ChatColor.GOLD + displayName);
     }
 }

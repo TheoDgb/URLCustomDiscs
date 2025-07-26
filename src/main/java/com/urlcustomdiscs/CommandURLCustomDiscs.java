@@ -107,40 +107,13 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             final String discName = displayName.toLowerCase();
 
             if (pluginUsageMode.equalsIgnoreCase("remote")) {
-                // Load the discs JSON file
+                DiscJsonManager discManager = new DiscJsonManager(plugin);
                 JSONObject discInfo = null;
                 try {
-                    JSONObject discData;
-                    if (discUuidFile.exists()) {
-                        String content = Files.readString(discUuidFile.toPath());
-                        discData = new JSONObject(content);
-                    } else {
-                        discData = new JSONObject();
-                    }
-
-                    // Check if the disc already exists in JSON file
-                    if (discData.has(discName)) { // Retrieve existing information
-                        discInfo = discData.getJSONObject(discName);
-                    } else { // Generate a new UUID for the disc
-                        String newUUID = UUID.randomUUID().toString();
-                        discInfo = new JSONObject();
-                        discInfo.put("uuid", newUUID);
-
-                        // Calculate customModelData from UUID
-                        // Removes dashes from the UUID, Takes the first 8 hexadecimal characters, Converts that part of the UUID to a long number, Keeps a positive number within the limit of int
-                        int customModelData = (int) (Long.parseLong(newUUID.replace("-", "").substring(0, 8), 16) & 0x7FFFFFFF);
-                        discInfo.put("customModelData", customModelData);
-                        discInfo.put("displayName", displayName);
-
-                        // Save the new information to the JSON file
-                        discData.put(discName, discInfo);
-                        Files.writeString(discUuidFile.toPath(), discData.toString(4));
-                    }
+                    discInfo = discManager.getOrCreateDisc(discName, displayName);
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
-
-                final JSONObject discInfoFinal = discInfo;
+                } final JSONObject discInfoFinal = discInfo;
 
                 if (plugin.getToken().isEmpty()) {
                     remoteApiClient.requestTokenFromRemoteServer(player, () -> {
@@ -374,23 +347,41 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         // Commande de suppression d'un disque
         if (args.length == 2 && args[0].equalsIgnoreCase("delete")) {
             String discName = args[1].toLowerCase().replaceAll(" ", "_");
-            if (minecraftServerType.equals("local")) {
-                deleteCustomMusicDisc(player, discName);
+            if (pluginUsageMode.equalsIgnoreCase("remote")) {
+                DiscJsonManager discManager = new DiscJsonManager(plugin);
+                JSONObject discInfo = null;
+                try {
+                    discInfo = discManager.getDisc(discName);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } final JSONObject discInfoFinal = discInfo;
+
+                String token = plugin.getToken();
+                if (token == null || token.isEmpty()) {
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "No token configured. Please register your server first by creating a custom disc.");
+                    return true;
+                }
+
+                remoteApiClient.deleteCustomDiscRemotely(player, discName, discInfoFinal, token);
                 return true;
-            }
-            else if (minecraftServerType.equals("online")) {
-                ResourcePackManager rpm = plugin.getResourcePackManager(); // Récupérer l'instance existante
+            } else if (pluginUsageMode.equalsIgnoreCase("local")) {
+                if (minecraftServerType.equals("local")) {
+                    deleteCustomMusicDisc(player, discName);
+                    return true;
+                } else if (minecraftServerType.equals("online")) {
+                    ResourcePackManager rpm = plugin.getResourcePackManager(); // Récupérer l'instance existante
 
-                // Download the server resource pack
-                if (rpm.downloadResourcePack()) {
-                    player.sendMessage(ChatColor.GRAY + "Server resource pack downloaded.");
+                    // Download the server resource pack
+                    if (rpm.downloadResourcePack()) {
+                        player.sendMessage(ChatColor.GRAY + "Server resource pack downloaded.");
 
-                    // Delete a custom music disc
-                    if (rpm.deleteCustomDiscFromResourcePack(player, discName)) {
-                        return true;
+                        // Delete a custom music disc
+                        if (rpm.deleteCustomDiscFromResourcePack(player, discName)) {
+                            return true;
+                        }
+                    } else {
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error downloading the server resource pack.");
                     }
-                } else {
-                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error downloading the server resource pack.");
                 }
             }
         }
