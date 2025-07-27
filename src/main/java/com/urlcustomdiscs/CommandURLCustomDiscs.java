@@ -106,7 +106,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             final String displayName = rawDiscName;
             final String discName = displayName.toLowerCase();
 
-            if (pluginUsageMode.equalsIgnoreCase("remote")) {
+            if (pluginUsageMode.equalsIgnoreCase("api")) {
                 DiscJsonManager discManager = new DiscJsonManager(plugin);
                 JSONObject discInfo = null;
                 try {
@@ -123,7 +123,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                     remoteApiClient.createCustomDiscRemotely(player, url, discName, audioType, discInfoFinal, plugin.getToken());
                 }
                 return true;
-            } else if (pluginUsageMode.equalsIgnoreCase("local")) {
+            } else if (pluginUsageMode.equalsIgnoreCase("self-hosted")) {
                 // Créer les fichiers mp3 et ogg
                 File musicFolder = new File(plugin.getDataFolder(), "music");
                 if (!musicFolder.exists()) musicFolder.mkdirs();
@@ -347,7 +347,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         // Commande de suppression d'un disque
         if (args.length == 2 && args[0].equalsIgnoreCase("delete")) {
             String discName = args[1].toLowerCase().replaceAll(" ", "_");
-            if (pluginUsageMode.equalsIgnoreCase("remote")) {
+            if (pluginUsageMode.equalsIgnoreCase("api")) {
                 DiscJsonManager discManager = new DiscJsonManager(plugin);
                 JSONObject discInfo = null;
                 try {
@@ -364,7 +364,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
 
                 remoteApiClient.deleteCustomDiscRemotely(player, discName, discInfoFinal, token);
                 return true;
-            } else if (pluginUsageMode.equalsIgnoreCase("local")) {
+            } else if (pluginUsageMode.equalsIgnoreCase("self-hosted")) {
                 if (minecraftServerType.equals("local")) {
                     deleteCustomMusicDisc(player, discName);
                     return true;

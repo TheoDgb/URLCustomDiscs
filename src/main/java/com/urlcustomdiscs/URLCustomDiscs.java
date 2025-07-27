@@ -62,27 +62,29 @@ public class URLCustomDiscs extends JavaPlugin {
                 String configContent =
                         "# Configuration file for URLCustomDiscs plugin.\n" +
                                 "\n" + "\n" +
-                                "# If you want to use the preconfigured server dedicated to the plugin, fill in the pluginUsageMode field with 'remote'.\n" +
-                                "# If you want a personal installation and configuration, fill in the pluginUsageMode field with 'local'.\n" +
-                                "pluginUsageMode: \"remote\"\n" +
+                                "# If you want to use the preconfigured remote API dedicated to the plugin, fill in the pluginUsageMode field with 'api'.\n" +
+                                "# If you want a personal installation and configuration, fill in the pluginUsageMode field with 'self-hosted'.\n" +
+                                "pluginUsageMode: \"api\"\n" +
                                 "\n" + "\n" +
-                                "# ========== REMOTE MODE CONFIGURATION ==========\n" +
+                                "# ========== REMOTE API MODE CONFIGURATION ==========\n" +
                                 "\n" +
-                                "# API base URL used to make requests to the remote server.\n" +
+                                "# API base URL used to make requests to the remote API.\n" +
                                 "apiBaseURL: \"http://localhost:3000\"\n" +
                                 "\n" +
-                                "# Unique token automatically created if pluginUsageMode is 'remote' for identification to the remote server.\n" +
+                                "# Unique token automatically generated for identification to the remote API when creating your first custom disc.\n" +
                                 "token: \"\"\n" +
                                 "\n" +
-                                "# Download pack URL using the token to find your URLCustomDiscsPack.\n" +
+                                "# Download pack URL, automatically generated when creating your first custom disc, using the token to locate your resource pack.\n" +
                                 "downloadPackURL: \"\"\n" +
-                                "# Once your token and downloadPackURL are generated, fill in the 'resource-pack=' field in your Minecraft server's 'server.properties' file by following the example below.\n" +
+                                "# Once your token and downloadPackURL have been generated, fill in the 'resource-pack=' field in your Minecraft server's 'server.properties' file, following the example below.\n" +
                                 "# Example: resource-pack=YOUR_downloadPackURL\n" +
+                                "# Then restart your Minecraft server.\n" +
                                 "\n" +
-                                "# Once you have filled 'resource-pack=' and tested that it works, you can force players to install the resource pack by setting the 'require-resource-pack=' field in your Minecraft server's 'server.properties' file to true.\n" +
+                                "# Once you have filled in the 'resource-pack=' field and tested that it works, you can force players to install the resource pack by setting the 'require-resource-pack=' field to true in your Minecraft server's 'server.properties' file, following the example below.\n" +
                                 "# Example: require-resource-pack=true\n" +
+                                "# Then restart your Minecraft server.\n" +
                                 "\n" + "\n" +
-                                "# ========== LOCAL MODE CONFIGURATION ==========\n" +
+                                "# ========== SELF-HOSTED MODE CONFIGURATION ==========\n" +
                                 "\n" +
                                 "# downloadResourcePackURL: Download URL of the URLCustomDiscsPack.zip resource pack from your personal local web server to update it for players.\n" +
                                 "# Example: http://11.111.11.1:80/URLCustomDiscsPack.zip\n" +

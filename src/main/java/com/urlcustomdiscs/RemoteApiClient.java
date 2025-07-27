@@ -26,7 +26,7 @@ public class RemoteApiClient {
     }
 
     public void requestTokenFromRemoteServer(Player player, Runnable onSuccess) {
-        player.sendMessage(ChatColor.GRAY + "Registering server with remote backend...");
+        player.sendMessage(ChatColor.GRAY + "Registering the server with the remote API...");
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 HttpURLConnection connection = createPostConnection("/register-mc-server");
@@ -59,15 +59,15 @@ public class RemoteApiClient {
                             player.sendMessage(ChatColor.YELLOW + "Do not forget to set resource-pack= with the downloadPackURL in your Minecraft server's server.properties file, following the instructions in the config.yml file of the URLCustomDiscs plugin.");
                             Bukkit.getScheduler().runTask(plugin, onSuccess);
                         } else {
-                            plugin.getLogger().warning("No token received from remote server.");
+                            plugin.getLogger().warning("No token received from remote API.");
                         }
                     }
                 } else {
-                    plugin.getLogger().warning("Remote server returned status code: " + responseCode);
+                    plugin.getLogger().warning("Remote API returned status code: " + responseCode);
                 }
 
             } catch (Exception e) {
-                plugin.getLogger().severe("Failed to register with remote server:");
+                plugin.getLogger().severe("Failed to register with remote API:");
                 e.printStackTrace();
             }
         });
@@ -84,7 +84,7 @@ public class RemoteApiClient {
     }
 
     public void createCustomDiscRemotely(Player player, String url, String discName, String audioType, JSONObject discInfo, String token) {
-        player.sendMessage(ChatColor.GRAY + "Sending information to the remote server...");
+        player.sendMessage(ChatColor.GRAY + "Sending information to the remote API...");
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 HttpURLConnection connection = createPostConnection("/create-custom-disc");
@@ -131,7 +131,7 @@ public class RemoteApiClient {
     }
 
     public void deleteCustomDiscRemotely(Player player, String discName, JSONObject discInfo, String token) {
-        player.sendMessage(ChatColor.GRAY + "Sending information to the remote server...");
+        player.sendMessage(ChatColor.GRAY + "Sending information to the remote API...");
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 HttpURLConnection connection = createPostConnection("/delete-custom-disc");
@@ -159,7 +159,7 @@ public class RemoteApiClient {
 
             } catch (Exception e) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
-                    player.sendMessage(ChatColor.RED + "An error occurred while contacting the remote server.");
+                    player.sendMessage(ChatColor.RED + "An error occurred while contacting the remote API.");
                     plugin.getLogger().severe("Exception during remote disc deletion:");
                 });
                 e.printStackTrace();
