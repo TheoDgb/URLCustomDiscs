@@ -62,7 +62,7 @@ Display custom music disc details in hand (used for debugging):<br>
 <br>
 
 Vanilla command to play a custom track (can be used with coordinates):<br>
-`/execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc name> ambiant @a`
+`/execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc name> ambient @a`
 
 Vanilla command to stop a custom track:<br>
 `/stopsound @a * minecraft:customdisc.<disc name>`

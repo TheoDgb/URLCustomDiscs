@@ -1,6 +1,6 @@
 name: URLCustomDiscs
 main: com.urlcustomdiscs.URLCustomDiscs
-version: 1.0.2
+version: 1.5.0
 api-version: 1.21
 author: Asson
 commands:
@@ -13,5 +13,5 @@ commands:
       /customdisc list - Displays custom music discs list
       /customdisc delete <disc name> - Deletes a custom music disc
       /customdisc info - Displays custom music disc details in hand
-      /execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc name> ambiant @a - Plays a disc (Vanilla)
+      /execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc name> ambient @a - Plays a disc (Vanilla)
       /stopsound @a * minecraft:customdisc.<disc name> - Stops a disc (Vanilla)

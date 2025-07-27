@@ -84,7 +84,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             player.sendMessage(ChatColor.YELLOW + "/customdisc info");
             player.sendMessage("");
             player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Other useful (vanilla) command:");
-            player.sendMessage(ChatColor.AQUA + "/execute positioned ~ ~ ~ run playsound minecraft:customdisc." + ChatColor.DARK_AQUA + "<" + ChatColor.AQUA + "disc name" + ChatColor.DARK_AQUA + "> " + ChatColor.AQUA + "ambiant @a");
+            player.sendMessage(ChatColor.AQUA + "/execute positioned ~ ~ ~ run playsound minecraft:customdisc." + ChatColor.DARK_AQUA + "<" + ChatColor.AQUA + "disc name" + ChatColor.DARK_AQUA + "> " + ChatColor.AQUA + "ambient @a");
             player.sendMessage(ChatColor.AQUA + "/stopsound @a * minecraft:customdisc." + ChatColor.DARK_AQUA + "<" + ChatColor.AQUA + "disc name" + ChatColor.DARK_AQUA + ">");
             player.sendMessage("");
             return true;

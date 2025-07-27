@@ -105,13 +105,13 @@ public class RemoteApiClient {
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     try (InputStream responseStream = connection.getInputStream()) {
                         String response = new String(responseStream.readAllBytes(), StandardCharsets.UTF_8);
-                        Bukkit.getScheduler().runTask(plugin, () -> handleApiResponse(player, responseCode, response, discInfo, null, "create"));
+                        Bukkit.getScheduler().runTask(plugin, () -> handleApiResponse(player, responseCode, response, discInfo, discName, "create"));
                     }
                 } else {
                     InputStream errorStream = connection.getErrorStream();
                     if (errorStream != null) {
                         String errorResponse = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
-                        Bukkit.getScheduler().runTask(plugin, () -> handleApiResponse(player, responseCode, errorResponse, discInfo, null, "create"));
+                        Bukkit.getScheduler().runTask(plugin, () -> handleApiResponse(player, responseCode, errorResponse, discInfo, discName, "create"));
                     } else {
                         Bukkit.getScheduler().runTask(plugin, () -> {
                             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to create disc. HTTP status: " + responseCode);
@@ -202,8 +202,7 @@ public class RemoteApiClient {
                             }
                         }
                     } else if (mode.equals("delete")) {
-                        DiscJsonManager discManager = new DiscJsonManager(plugin);
-                        discManager.deleteDisc(discName);
+                        cleanupDiscEntry(discName);
 
                         player.sendMessage(ChatColor.GREEN + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GREEN + " deleted.");
                         plugin.getLogger().info("[API SUCCESS] " + message);
@@ -213,16 +212,38 @@ public class RemoteApiClient {
                     String error = json.optString("error", "An unknown error occurred.");
                     player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "API error: " + error);
                     plugin.getLogger().warning("[API ERROR] " + error);
+
+                    cleanupDiscEntry(discName);
                 }
             } catch (Exception e) {
                 // Malformed JSON or other exception during parsing
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to parse API response.");
                 plugin.getLogger().severe("Failed to parse API response: " + responseBody);
+
+                cleanupDiscEntry(discName);
             }
+        } else if (responseCode == 409) { // communicate the error in the player chat
+            JSONObject json = new JSONObject(responseBody);
+            String error = json.optString("error", "Conflict error.");
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + error);
+            plugin.getLogger().warning("[API ERROR] " + error);
+
+            cleanupDiscEntry(discName);
         } else {
             // HTTP error code (4xx, 5xx, etc.)
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "HTTP Error " + responseCode + ": Check server logs for details.");
             plugin.getLogger().warning("API responded with HTTP error code: " + responseCode + ", response body: " + responseBody);
+
+            cleanupDiscEntry(discName);
+        }
+    }
+
+    private void cleanupDiscEntry(String discName) {
+        try {
+            DiscJsonManager discManager = new DiscJsonManager(plugin);
+            discManager.deleteDisc(discName);
+        } catch (IOException ex) {
+            plugin.getLogger().warning("Failed to clean up local disc entry: " + ex.getMessage());
         }
     }
 }
