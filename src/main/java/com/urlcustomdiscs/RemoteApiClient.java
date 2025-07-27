@@ -213,14 +213,18 @@ public class RemoteApiClient {
                     player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "API error: " + error);
                     plugin.getLogger().warning("[API ERROR] " + error);
 
-                    cleanupDiscEntry(discName);
+                    if (mode.equals("create")) {
+                        cleanupDiscEntry(discName);
+                    }
                 }
             } catch (Exception e) {
                 // Malformed JSON or other exception during parsing
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to parse API response.");
                 plugin.getLogger().severe("Failed to parse API response: " + responseBody);
 
-                cleanupDiscEntry(discName);
+                if (mode.equals("create")) {
+                    cleanupDiscEntry(discName);
+                }
             }
         } else if (responseCode == 409) { // communicate the error in the player chat
             JSONObject json = new JSONObject(responseBody);
@@ -228,13 +232,17 @@ public class RemoteApiClient {
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + error);
             plugin.getLogger().warning("[API ERROR] " + error);
 
-            cleanupDiscEntry(discName);
+            if (mode.equals("create")) {
+                cleanupDiscEntry(discName);
+            }
         } else {
             // HTTP error code (4xx, 5xx, etc.)
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "HTTP Error " + responseCode + ": Check server logs for details.");
             plugin.getLogger().warning("API responded with HTTP error code: " + responseCode + ", response body: " + responseBody);
 
-            cleanupDiscEntry(discName);
+            if (mode.equals("create")) {
+                cleanupDiscEntry(discName);
+            }
         }
     }
 
