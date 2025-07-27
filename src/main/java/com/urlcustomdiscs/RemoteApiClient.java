@@ -55,8 +55,8 @@ public class RemoteApiClient {
                             plugin.setToken(receivedToken);
                             plugin.setDownloadPackURL(receivedDownloadPackURL);
 
-                            player.sendMessage(ChatColor.GREEN + "Your token is generated and downloadPackURL is available in the config.yml file of the URLCustomDiscs plugin.");
-                            player.sendMessage(ChatColor.YELLOW + "Do not forget to set resource-pack= with the downloadPackURL in your Minecraft server's server.properties file, following the instructions in the config.yml file of the URLCustomDiscs plugin.");
+                            player.sendMessage(ChatColor.GREEN + "Your token has been generated and downloadPackURL is available in the config.yml file of the URLCustomDiscs plugin.");
+                            player.sendMessage(ChatColor.YELLOW + "Don't forget to set the 'resource-pack=' field in your Minecraft server's 'server.properties' file using the downloadPackURL, as explained in the 'config.yml' file of the URLCustomDiscs plugin.");
                             Bukkit.getScheduler().runTask(plugin, onSuccess);
                         } else {
                             plugin.getLogger().warning("No token received from remote API.");

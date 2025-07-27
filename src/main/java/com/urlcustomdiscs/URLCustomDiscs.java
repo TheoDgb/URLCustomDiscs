@@ -69,7 +69,7 @@ public class URLCustomDiscs extends JavaPlugin {
                                 "# ========== REMOTE API MODE CONFIGURATION ==========\n" +
                                 "\n" +
                                 "# API base URL used to make requests to the remote API.\n" +
-                                "apiBaseURL: \"http://localhost:3000\"\n" +
+                                "apiBaseURL: \"http://localhost:80\"\n" +
                                 "\n" +
                                 "# Unique token automatically generated for identification to the remote API when creating your first custom disc.\n" +
                                 "token: \"\"\n" +
