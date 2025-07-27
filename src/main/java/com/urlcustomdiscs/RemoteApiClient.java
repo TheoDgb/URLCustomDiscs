@@ -226,9 +226,18 @@ public class RemoteApiClient {
                     cleanupDiscEntry(discName);
                 }
             }
-        } else if (responseCode == 409) { // communicate the error in the player chat
+        } else if (responseCode == 409) { // communicate the error 'Conflict' in the player chat
             JSONObject json = new JSONObject(responseBody);
             String error = json.optString("error", "Conflict error.");
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + error);
+            plugin.getLogger().warning("[API ERROR] " + error);
+
+            if (mode.equals("create")) {
+                cleanupDiscEntry(discName);
+            }
+        } else if (responseCode == 429) { // communicate the error 'Too Many Requests' in the player chat
+            JSONObject json = new JSONObject(responseBody);
+            String error = json.optString("error", "Too many requests error.");
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + error);
             plugin.getLogger().warning("[API ERROR] " + error);
 
