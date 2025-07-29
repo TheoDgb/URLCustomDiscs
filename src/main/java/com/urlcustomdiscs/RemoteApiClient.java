@@ -244,6 +244,15 @@ public class RemoteApiClient {
             if (mode.equals("create")) {
                 cleanupDiscEntry(discName);
             }
+        } else if (responseCode == 503) { // communicate the error 'Service Unavailable' in the player chat
+            JSONObject json = new JSONObject(responseBody);
+            String error = json.optString("error", "Service Unavailable error.");
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + error);
+            plugin.getLogger().warning("[API ERROR] " + error);
+
+            if (mode.equals("create")) {
+                cleanupDiscEntry(discName);
+            }
         } else {
             // HTTP error code (4xx, 5xx, etc.)
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "HTTP Error " + responseCode + ": Check server logs for details.");
