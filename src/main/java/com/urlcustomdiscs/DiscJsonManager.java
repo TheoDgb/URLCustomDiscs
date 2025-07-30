@@ -9,9 +9,11 @@ import java.nio.file.Files;
 import java.util.UUID;
 
 public class DiscJsonManager {
+    private final JavaPlugin plugin;
     private final File discUuidFile;
 
     public DiscJsonManager(JavaPlugin plugin) {
+        this.plugin = plugin;
         this.discUuidFile = new File(plugin.getDataFolder(), "discs.json");
     }
 
@@ -61,5 +63,13 @@ public class DiscJsonManager {
 
     private void saveDiscData(JSONObject discData) throws IOException {
         Files.writeString(discUuidFile.toPath(), discData.toString(4));
+    }
+
+    public void deleteDiscFile() {
+        if (discUuidFile.exists()) {
+            if (!discUuidFile.delete()) {
+                plugin.getLogger().warning("Failed to delete discs.json file. You must delete this file manually from the plugin's URLCustomDisc folder, then restart your Minecraft server.");
+            }
+        }
     }
 }

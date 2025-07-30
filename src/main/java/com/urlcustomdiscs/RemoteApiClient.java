@@ -232,6 +232,28 @@ public class RemoteApiClient {
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + error);
             plugin.getLogger().warning("[API ERROR] " + error);
 
+            // Reset config
+            try {
+                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                config.set("token", "");
+                config.set("downloadPackURL", "");
+                config.save(configFile);
+
+                plugin.setToken("");
+                plugin.setDownloadPackURL("");
+            } catch (IOException ex) {
+                plugin.getLogger().warning("Failed to reset token and/or downloadPackURL in config.yml: " + ex.getMessage() + " You must clear these values manually in the config.yml file, then restart your Minecraft server.");
+            }
+
+            // Delete discs.json
+            try {
+                DiscJsonManager discManager = new DiscJsonManager(plugin);
+                discManager.deleteDiscFile();
+            } catch (Exception ex) {
+                plugin.getLogger().warning("Failed to delete discs.json: " + ex.getMessage());
+            }
+
             if (mode.equals("create")) {
                 cleanupDiscEntry(discName);
             }
