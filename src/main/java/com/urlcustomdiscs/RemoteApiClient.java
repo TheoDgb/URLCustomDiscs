@@ -226,6 +226,15 @@ public class RemoteApiClient {
                     cleanupDiscEntry(discName);
                 }
             }
+        } else if (responseCode == 401) { // communicate the error 'Unauthorized' in the player chat
+            JSONObject json = new JSONObject(responseBody);
+            String error = json.optString("error", "Unauthorized error.");
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + error);
+            plugin.getLogger().warning("[API ERROR] " + error);
+
+            if (mode.equals("create")) {
+                cleanupDiscEntry(discName);
+            }
         } else if (responseCode == 409) { // communicate the error 'Conflict' in the player chat
             JSONObject json = new JSONObject(responseBody);
             String error = json.optString("error", "Conflict error.");
