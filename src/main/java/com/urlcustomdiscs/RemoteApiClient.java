@@ -226,6 +226,15 @@ public class RemoteApiClient {
                     cleanupDiscEntry(discName);
                 }
             }
+        } else if (responseCode == 419) { // communicate the error 'Authentication Timeout (YouTube cookie expired)' in the player chat
+            JSONObject json = new JSONObject(responseBody);
+            String error = json.optString("error", "Authentication Timeout (YouTube cookie expired) error.");
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + error);
+            plugin.getLogger().warning("[API ERROR] " + error);
+
+            if (mode.equals("create")) {
+                cleanupDiscEntry(discName);
+            }
         } else if (responseCode == 401) { // communicate the error 'Unauthorized' in the player chat
             JSONObject json = new JSONObject(responseBody);
             String error = json.optString("error", "Unauthorized error.");
