@@ -1,12 +1,12 @@
 ## 1.21.0-1 URLCustomDiscs plugin (+ server resource pack)
-Last updated on July 1, 2025.
+Last updated on July 2, 2025.
 
 <img src="https://github.com/TheoDgb/URLCustomDiscs/blob/main/media/URLCustomDiscs_icon.png?raw=true" alt="URLCustomDiscs Icon" style="width: 10%;">
 
 ## About
-This plugin, along with a **server resource pack**, allows you to create and play custom music discs from YouTube URLs on your **Minecraft server**, with real-time updates for players.
+This plugin, along with a server resource pack, allows you to **create and play custom music discs from YouTube URLs** on your Minecraft server, with **real-time updates for players**.
 
-Once installed, everything is done in-game, and there's no need to manually edit the **resource pack** files to add or remove discs.
+Once installed, everything is done **in-game**, and there's no need to manually edit the resource pack files to add or remove discs.
 
 The plugin supports Minecraft's spatial audio for music, but you can also play it in stereo.
 
@@ -70,24 +70,24 @@ Vanilla command to stop a custom track:
 ## Usage Modes
 The plugin offers **two modes of use**, depending on your setup and preferences:
 - **API Mode** (default):  
-  Uses a dedicated **remote API** to manage custom discs, the **resource pack**, and dependencies. Ideal for quick and easy setup, but with some limitations on the **resource pack** and audio files.
+  Uses a dedicated remote API to manage custom discs, the resource pack, and dependencies. Ideal for **quick and easy setup**, but with some limitations on the resource pack and audio files.
 - **Self-Hosted Mode**:  
-  For advanced users who prefer to host and manage everything themselves. You can bypass the **API** and configure the plugin manually using your own setup and **HTTP server**.
+  For advanced users who prefer to **host and manage everything themselves**. You can bypass the API and configure the plugin manually using your **own setup and HTTP server**.
 ### API Mode Resource Pack Limitations
-To minimize storage space and ensure fast downloads, the **resource pack** has the following limitations:
+To minimize storage space and ensure fast downloads, the resource pack has the following limitations:
 - Up to 10 custom discs can be included in the resource pack at the same time.
 - Each custom discs is limited to a maximum duration of 5 minutes.
-- The **resource pack** size is limited to 80 MB (more than enough).
-- If no activity (adding or deleting a custom disc) occurs for 3 months, the token and **resource pack** will be automatically deleted to free up space.
+- The resource pack size is limited to 80 MB (more than enough).
+- If no activity (adding or deleting a custom disc) occurs for 3 months, the token and resource pack will be automatically deleted to free up space.
 ### Self-Hosted Mode Requirements
-You must provide a **personal HTTP server** to host the **resource pack**. Depending on your setup (local or online **Minecraft server** / local or online **HTTP server**), the **HTTP server** must support the following:
-- **Locals servers**: allow the plugin to edit the **resource pack** directly via an absolute file path.
-- **Online servers**: allow the plugin to upload the updated **resource pack** using HTTP POST requests.
-- **Players**: provide access to download the **resource pack** and receive real-time updates for custom music discs.
+You must provide a **personal HTTP server to host the resource pack**. Depending on your setup (local or online Minecraft server / local or online HTTP server), the HTTP server must support the following:
+- **Locals servers**: allow the plugin to edit the resource pack directly via an absolute file path.
+- **Online servers**: allow the plugin to upload the updated resource pack using HTTP POST requests.
+- **Players**: provide access to download the resource pack and receive real-time updates for custom music discs.
 ### Documentation
 This documentation focuses on the default **API Mode**, which is the recommended setup for most users.
 
-If you want to use the **Self-Hosted Mode** instead, please refer to the dedicated documentation from the **URLCustomDiscs** GitHub repository: [Self-Hosted Mode documentation](https://github.com/TheoDgb/URLCustomDiscs/blob/main/SELFHOSTEDINSTALLATION.md)
+If you want to use the **Self-Hosted Mode** instead, please refer to the dedicated documentation from the URLCustomDiscs GitHub repository: [Self-Hosted Mode documentation](https://github.com/TheoDgb/URLCustomDiscs/blob/main/SELFHOSTEDINSTALLATION.md)
 
 For more details, you may explore the **API** documentation, source code and architecture in the [URLCustomDiscsAPI GitHub repository](https://github.com/TheoDgb/URLCustomDiscsAPI).
 
@@ -105,23 +105,23 @@ The **URLCustomDiscs.jar** plugin is available for download in the [Releases](ht
 It is also available on [Modrinth](https://modrinth.com/plugin/url-custom-discs).
 
 ## Installation
-This plugin requires a brief setup to ensure players automatically download the **resource pack** when they join the **Minecraft server**.
+This plugin requires a brief setup to ensure players automatically download the resource pack when they join the Minecraft server.
 ### Steps to install with the API Mode (default mode):
-1. Download and place the plugin `URLCustomDiscs.jar` file into your **Minecraft server**'s `plugins` folder.
-2. Start your **Minecraft server**.  
+1. Download and place the plugin `URLCustomDiscs.jar` file into your Minecraft server's `plugins` folder.
+2. Start your Minecraft server.  
    This will create a plugin folder at `plugins/URLCustomDiscs` containing a `config.yml` file.
-3. Open `plugins/URLCustomDiscs/config.yml` and make sure the following field is set: `pluginUsageMode: api` (This is the default value.)
+3. Open `plugins/URLCustomDiscs/config.yml` and make sure the following field is set: `pluginUsageMode: api`
 4. In the same config file, locate the **REMOTE API MODE CONFIGURATION** section.  
    Important fields include:
-   - `apiBaseURL`: the base URL of the **remote API**
-   - `token`: initially empty, automatically generated after creating your first custom disc
-   - `downloadPackURL`, initially empty, automatically generated after creating your first custom disc
+    - `apiBaseURL`: the base URL of the remote API
+    - `token`: initially empty, automatically generated after creating your first custom disc
+    - `downloadPackURL`, initially empty, automatically generated after creating your first custom disc
 5. Create your first custom disc in-game using the `/customdisc create <URL> <disc name> <mono/stereo>` command.  
    This action will generate your unique `token` and the `downloadPackURL`.
-6. Copy the generated `downloadPackURL` and paste it into your **Minecraft server**'s `server.properties` file under the `resource-pack=` filed, for example:  
+6. Copy the generated `downloadPackURL` and paste it into your Minecraft server's `server.properties` file under the `resource-pack=` filed, for example:  
    `resource-pack=https://your-generated-downloadPackURL.zip`
-7. Restart your **Minecraft server** to apply the **resource pack** settings.
-8. (Optional) To force players to download the **resource pack**, set `require-resource-pack=true` in `server.properties` and restart your **Minecraft server**.
+7. Restart your Minecraft server to apply the resource pack settings.
+8. (Optional) To force players to download the resource pack, set `require-resource-pack=true` in `server.properties` and restart your Minecraft server.
 
 **Note**: All these steps are also explained in detail in the `config.yml` file created when you first launch the plugin.
 
@@ -161,7 +161,7 @@ URLCustomDiscsPack.zip/
 </details>
 
 ## Support & Community
-This plugin relies on a **remote API** and **resource pack** hosting maintained by me.  
+This plugin relies on a **remote API** and **resource pack hosting** maintained by me.  
 If you'd like to support the project and help cover server and storage costs, please consider contributing via [Ko-fi](https://ko-fi.com/asson). Thank you! ❤️
 
 For any questions, help, or suggestions, feel free to join the [Discord server](https://discord.gg/tdWztKWzcm)!
