@@ -1,5 +1,5 @@
 ## 1.21.0-1 URLCustomDiscs plugin (+ server resource pack)
-Last updated on July 2, 2025.
+Last updated on July 4, 2025.
 
 <img src="https://github.com/TheoDgb/URLCustomDiscs/blob/main/media/URLCustomDiscs_icon.png?raw=true" alt="URLCustomDiscs Icon" style="width: 10%;">
 
@@ -42,6 +42,17 @@ Additionally, vanilla commands such as `/playsound` and `/stopsound` work with t
   </tbody>
 </table>
 
+## Audio Download Options
+### **Warning**: ***YouTube blocked my API server***. This issue can be resolved by using a residential proxy, but it's costly for me. Thank you for your understanding.
+In the meantime, you have **two alternative options**:
+- **Use the built-in **yt-dlp** dependency (Minecraft server-side download)**  
+  You can use the included **yt-dlp** dependency in the plugin. It will download the audio from the YouTube URL into the plugin folder and then send it to the API.
+  > This method is **unlikely to work on shared Minecraft hosting providers**, such as Shockbyte, as they often do **not allow execution** of yt-dlp, or the IP ranges of those servers are likely **already banned by YouTube** (just like my API is at the moment).
+- **Manually download the MP3 file (admin-only, 100% reliable)**  
+  If you don't mind downloading the audio as an MP3, use a site like [noTube](https://notube.lol/fr/youtube-app-213) to download the MP3 manually. Then, place the file directly into the `audio_to_send` folder inside the `URLCustomDiscs` plugin directory.  
+  Use the appropriate command to create a disc with that MP3.
+  > This method only works for Minecraft server admins, as it requires access to the server’s file system.
+
 ## Commands Overview
 Display the list of commands:  
 `/customdisc help`
@@ -50,6 +61,10 @@ Create a custom music disc from a YouTube URL or local MP3 file:
 `/customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>`
 - mono: enables spatial audio (as when played in a jukebox)
 - stereo: plays the audio in the traditional way
+> **Instructions for local MP3 files**:
+> - Place your MP3 file inside the `audio_to_send` folder in the plugin directory before running the create command with the `audio_name.mp3`.
+> - Rename the MP3 file to a simple name with no spaces and no special characters.
+> - Don't forget to include the `.mp3` extension in the `audio_name.mp3` field.
 
 Give yourself a custom music disc:  
 `/customdisc give <disc_name>`
@@ -62,6 +77,9 @@ Delete a custom music disc:
 
 Show details of the custom music disc you're holding (useful for debugging):  
 `/customdisc info`
+
+Update the yt-dlp dependency:
+`/customdisc update`
 
 Vanilla command to play a custom track (can be used with coordinates):  
 `/execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc_name> ambient @a`
@@ -112,12 +130,18 @@ They are also available on [Modrinth](https://modrinth.com/plugin/url-custom-dis
 **Important**:
 - For users who **don't want or can't host their Minecraft server on their own personal machine**, it's common to turn to online hosting providers.
   Keep in mind that you’ll still need a **personal HTTP server to host the resource pack** for the custom music discs to be added and updated automatically.
-- If you're using shared hosting like Shockbyte or a similar provider, **make sure your host allows you to run binary files** (for yt-dlp and FFmpeg, in our case).
+- If you're using **shared Minecraft hosting** like Shockbyte or a similar provider, **make sure your host allows you to run binary files** (specifically `yt-dlp` and `FFmpeg`, in our case).
   **Some hosts may have restrictions** or require special permissions. Check their documentation or contact their support if you're not sure.
-- For full control and compatibility, it's highly recommended to use a VPS (Virtual Private Server), which gives you full root access, instead of shared Minecraft hosting.
-  With a VPS, you can host both your Minecraft server and an (Apache) HTTP server on the same machine, making it ideal for serving the resource pack directly.
-  The Apache server setup on a VPS is not covered in this guide (locally only). Configuring the IP, ports, firewall, and other related settings is the user's responsibility, as these can vary depending on the VPS provider. However, the steps to set up an Apache server remain the same on a VPS.
-  Just make sure to configure your firewall and open the necessary ports, as VPS environments usually require manual network setup.
+- To ensure full compatibility and control, it's highly recommended to use a **VPS (Virtual Private Server)** instead of shared Minecraft hosting.
+  A VPS gives you full root access, allowing you to host both your Minecraft server and an HTTP server (such as Apache) on the same machine, making it ideal for directly serving the resource pack.
+  > **Warning**:  
+  If you intend to use `yt-dlp` to download YouTube audio directly from your server, you must ensure that the machine (including VPS) is **not part of an IP range currently blocked by YouTube**.  
+  Shared Minecraft environments are often already blacklisted due to widespread abuse.  
+  For greater reliability, consider using a **residential proxy with IP rotation**. This significantly reduces the risk of download failures and helps maintain consistent access to YouTube for audio retrieval.  
+  In most cases, if your Minecraft server is running **locally on your personal machine**, `yt-dlp` works perfectly **without any proxy**, since residential IPs are rarely blocked by YouTube.
+- This guide does **not** cover Apache HTTP server setup on a **VPS**.
+  VPS environments require manual configuration (IP binding, port forwarding, firewall rules, etc.), which vary depending on the provider. However, the steps to set up Apache remain the same.
+  Just make sure to open the necessary ports and configure your firewall correctly to allow HTTP traffic.
 
 The following shared Minecraft hosting providers have been tested or confirmed to allow the execution of binary files (yt-dlp / FFmpeg):
 - Compatible:

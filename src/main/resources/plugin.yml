@@ -27,6 +27,9 @@ commands:
       Show details of the custom music disc you're holding (useful for debugging):
       /customdisc info
       
+      Update the yt-dlp dependency:
+      /customdisc update
+      
       Vanilla command to play a custom track (can be used with coordinates):
       /execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc_name> ambient @a
       

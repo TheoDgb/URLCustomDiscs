@@ -1,5 +1,5 @@
 ## 1.21.0-1 URLCustomDiscs plugin (+ server resource pack)
-Last updated on July 2, 2025.
+Last updated on July 4, 2025.
 
 <img src="https://github.com/TheoDgb/URLCustomDiscs/blob/main/media/URLCustomDiscs_icon.png?raw=true" alt="URLCustomDiscs Icon" style="width: 10%;">
 
@@ -15,7 +15,7 @@ Additionally, vanilla commands such as `/playsound` and `/stopsound` work with t
 **Important**: Make sure to use a direct video URL without any parameters (such as playlist, timecode, etc.), or you might get an unexpected result. Delete everything from the "&" in the URL.
 
 **Note**: Plugin tested on 1.21.0-1 Spigot, Paper and Arclight servers  
--- Partially works in 1.21.4: discs can be created, deleted, and played using vanilla commands, but don't play as intended in a jukebox.
+-- Partially works in 1.21.4+: discs can be created, deleted, and played using vanilla commands, but don't play as intended in a jukebox.
 
 ## Usage
 <table>
@@ -40,6 +40,17 @@ Additionally, vanilla commands such as `/playsound` and `/stopsound` work with t
   </tbody>
 </table>
 
+## Audio Download Options
+### **Warning**: ***YouTube blocked my API server***. This issue can be resolved by using a residential proxy, but it's costly for me. Thank you for your understanding.
+In the meantime, you have **two alternative options**:
+- **Use the built-in **yt-dlp** dependency (Minecraft server-side download)**  
+  You can use the included **yt-dlp** dependency in the plugin. It will download the audio from the YouTube URL into the plugin folder and then send it to the API.
+  > This method is **unlikely to work on shared Minecraft hosting providers**, such as Shockbyte, as they often do **not allow execution** of yt-dlp, or the IP ranges of those servers are likely **already banned by YouTube** (just like my API is at the moment).
+- **Manually download the MP3 file (admin-only, 100% reliable)**  
+  If you don't mind downloading the audio as an MP3, use a site like [noTube](https://notube.lol/fr/youtube-app-213) to download the MP3 manually. Then, place the file directly into the `audio_to_send` folder inside the `URLCustomDiscs` plugin directory.  
+  Use the appropriate command to create a disc with that MP3.
+  > This method only works for Minecraft server admins, as it requires access to the server’s file system.
+
 ## Commands Overview
 Display the list of commands:  
 `/customdisc help`
@@ -48,6 +59,10 @@ Create a custom music disc from a YouTube URL or local MP3 file:
 `/customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>`
 - mono: enables spatial audio (as when played in a jukebox)
 - stereo: plays the audio in the traditional way
+> **Instructions for local MP3 files**:  
+> - Place your MP3 file inside the `audio_to_send` folder in the plugin directory before running the create command with the `audio_name.mp3`.  
+> - Rename the MP3 file to a simple name with no spaces and no special characters.
+> - Don't forget to include the `.mp3` extension in the `audio_name.mp3` field.
 
 Give yourself a custom music disc:  
 `/customdisc give <disc_name>`
@@ -60,6 +75,9 @@ Delete a custom music disc:
 
 Show details of the custom music disc you're holding (useful for debugging):  
 `/customdisc info`
+
+Update the yt-dlp dependency:
+`/customdisc update`
 
 Vanilla command to play a custom track (can be used with coordinates):  
 `/execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc_name> ambient @a`
@@ -91,13 +109,14 @@ If you want to use the **Self-Hosted Mode** instead, please refer to the dedicat
 
 For more details, you may explore the **API** documentation, source code and architecture in the [URLCustomDiscsAPI GitHub repository](https://github.com/TheoDgb/URLCustomDiscsAPI).
 
-## Dependencies (used by the API)
+## Dependencies (used by the API and/or the Minecraft server)
 ### License & Attribution
 The **URLCustomDiscsAPI** uses the following external tools:
 - **yt-dlp**, from the [yt-dlp GitHub repository](https://github.com/yt-dlp/yt-dlp), licensed under the [Unlicense](https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE)
 - **FFmpeg**, from the [FFmpeg Static Builds](https://johnvansickle.com/ffmpeg/), licensed under the [GNU General Public License version 3 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html)
 ### Tool Usage
-- **yt-dlp**: downloads MP3 audio files from YouTube URLs.
+- **yt-dlp**: downloads MP3 audio files from YouTube URLs.  
+  When local yt-dlp usage is enabled, the tool is automatically downloaded and kept up to date by the plugin at runtime.
 - **FFmpeg**: converts MP3 files to Ogg Vorbis format for Minecraft compatibility.
 
 ## Download
@@ -115,13 +134,18 @@ This plugin requires a brief setup to ensure players automatically download the 
    Important fields include:
     - `apiBaseURL`: the base URL of the remote API
     - `token`: initially empty, automatically generated after creating your first custom disc
-    - `downloadPackURL`, initially empty, automatically generated after creating your first custom disc
+    - `downloadPackURL`: initially empty, automatically generated after creating your first custom disc
+    - `localYtDlp`: defines whether to use the built-in yt-dlp tool included in the plugin to download audio files directly from YouTube on your own server instead of relying on the external API. This field is set to false by default.
 5. Create your first custom disc in-game using the `/customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>` command.  
    This action will generate your unique `token` and the `downloadPackURL`.
 6. Copy the generated `downloadPackURL` and paste it into your Minecraft server's `server.properties` file under the `resource-pack=` filed, for example:  
    `resource-pack=https://your-generated-downloadPackURL.zip`
 7. Restart your Minecraft server to apply the resource pack settings.
 8. (Optional) To force players to download the resource pack, set `require-resource-pack=true` in `server.properties` and restart your Minecraft server.
+9. Due to the current issue with the API server being blocked by YouTube, if you **don’t want to manually download MP3 files** and would prefer to keep using **YouTube URLs**, you can configure the plugin to use the **included yt-dlp** dependency directly on your Minecraft server.  
+   To do this, set the following field in the `config.yml` file: `localYtDlp: true`, then restart your Minecraft server.
+   > This option likely won’t work on most **shared Minecraft hosting providers** (like Shockbyte). For more details, refer to the [Audio Download Options](#audio-download-options)
+   section.
 
 **Note**: All these steps are also explained in detail in the `config.yml` file created when you first launch the plugin.
 

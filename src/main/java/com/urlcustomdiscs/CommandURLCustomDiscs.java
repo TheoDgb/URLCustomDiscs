@@ -2,6 +2,7 @@ package com.urlcustomdiscs;
 import com.mpatric.mp3agic.Mp3File;
 import com.urlcustomdiscs.utils.DiscUtils;
 
+import com.urlcustomdiscs.utils.YtDlpUtils;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -84,6 +85,9 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Show details of the custom music disc you're holding:");
             player.sendMessage(ChatColor.YELLOW + "/customdisc info");
             player.sendMessage("");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Update the yt-dlp dependency:");
+            player.sendMessage(ChatColor.YELLOW + "/customdisc update");
+            player.sendMessage("");
             player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Other useful vanilla commands:");
             player.sendMessage(ChatColor.AQUA + "/execute positioned ~ ~ ~ run playsound minecraft:customdisc." + ChatColor.DARK_AQUA + "<" + ChatColor.AQUA + "disc_name" + ChatColor.DARK_AQUA + "> " + ChatColor.AQUA + "ambient @a");
             player.sendMessage("");
@@ -92,7 +96,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             return true;
         }
 
-        // Commande pour créer un disque custom
+        // Commande to create a custom disc
         if (args.length == 4 && args[0].equalsIgnoreCase("create")) {
             String input = args[1];
             String rawDiscName = args[2].replaceAll("[^a-zA-Z0-9_-]", "_");
@@ -103,7 +107,23 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             try {
                 // Checks if input is a valid URL
                 new URL(input);
-                audio = input;
+
+                // If local yt-dlp is enabled, the mp3 is downloaded
+                if (plugin.getLocalYtDlp()) {
+                    YtDlpUtils ytDlpUtils = new YtDlpUtils(plugin);
+                    File mp3File = new File(plugin.getDataFolder(), "audio_to_send/" + rawDiscName + ".mp3");
+                    boolean downloaded = ytDlpUtils.downloadAudioWithYtDlp(input, mp3File);
+
+                    if (!downloaded || !mp3File.exists()) {
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to download audio from the URL using local yt-dlp.");
+                        return true;
+                    }
+
+                    audio = mp3File.getName(); // Pass the downloaded MP3 file name
+                } else {
+                    // The URL is kept as is
+                    audio = input;
+                }
             } catch (MalformedURLException e) {
                 // If it is not a URL we check if it is an MP3 file in the audio_to_send folder
                 File localMp3 = new File(plugin.getDataFolder(), "audio_to_send/" + input);
@@ -461,6 +481,30 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             } else {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must be holding a custom music disc.");
             }
+            return true;
+        }
+
+        // Command to update the yt-dlp dependency
+        if (args.length == 1 && args[0].equalsIgnoreCase("update")) {
+            if (!plugin.getLocalYtDlp()) {
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD +
+                        "Error: local yt-dlp is disabled. " +
+                        "This feature is required to download audio from URLs using the server's local yt-dlp installation instead of the remote API. " +
+                        "To enable it, open the config.yml file, set 'localYtDlp: true', and restart the server.");
+                return true;
+            }
+
+            player.sendMessage(ChatColor.GRAY + "Checking for yt-dlp updates...");
+
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                YtDlpSetup ytDlpSetup = new YtDlpSetup(plugin);
+                try {
+                    ytDlpSetup.setup();
+                    player.sendMessage(ChatColor.GREEN + "yt-dlp update check finished. See console for details.");
+                } catch (Exception e) {
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to update yt-dlp: " + e.getMessage());
+                }
+            });
             return true;
         }
 

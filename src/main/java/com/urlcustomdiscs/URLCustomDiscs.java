@@ -18,6 +18,7 @@ public class URLCustomDiscs extends JavaPlugin {
     private String apiBaseURL;
     private String token;
     private String downloadPackURL;
+    private Boolean localYtDlp;
     private String downloadResourcePackURL;
     private String minecraftServerType;
     private String zipFilePath;
@@ -34,10 +35,12 @@ public class URLCustomDiscs extends JavaPlugin {
         loadFiles(); // Charger ou créer les dossiers
         loadConfig(); // Charger ou créer le fichier de configuration
 
+        if (localYtDlp) {
+            new YtDlpSetup(this).setup();
+        }
+
         remoteApiClient = new RemoteApiClient(this, getApiBaseURL());
         resourcePackManager = new ResourcePackManager(discUuidFile, editResourcePackFolder, downloadResourcePackURL, uploadResourcePackURL); // Initialiser l'instance de ResourcePackManager
-
-        // downloadDependencies();
 
         Objects.requireNonNull(this.getCommand("customdisc")).setExecutor(new CommandURLCustomDiscs(this, remoteApiClient));
 
@@ -52,11 +55,10 @@ public class URLCustomDiscs extends JavaPlugin {
     private void loadConfig() {
         File configFile = new File(getDataFolder(), "config.yml");
 
-        if (!getDataFolder().exists()) {
-            getDataFolder().mkdirs();
-        }
+        // Create the plugins/URLCustomDiscs folder
+        getDataFolder().mkdirs();
 
-        // Si le fichier de configuration n'existe pas, le créer avec des valeurs par défaut
+        // Create the plugins/URLCustomDiscs/config.yml file
         if (!configFile.exists()) {
             try {
                 configFile.createNewFile();
@@ -84,6 +86,12 @@ public class URLCustomDiscs extends JavaPlugin {
                                 "# Once you have filled in the 'resource-pack=' field and tested that it works, you can force players to install the resource pack by setting the 'require-resource-pack=' field to true in your Minecraft server's 'server.properties' file, following the example below.\n" +
                                 "# Example: require-resource-pack=true\n" +
                                 "# Then restart your Minecraft server.\n" +
+                                "\n" +
+                                "# If set to true, uses the yt-dlp tool included in the plugin to download audio directly from YouTube on your Minecraft server.\n" +
+                                "# This allows you to continue using YouTube URLs even if the remote API is blocked by YouTube or other websites like soundcloud.\n" +
+                                "# Not recommended for shared Minecraft hosting providers (like Shockbyte), as they usually block yt-dlp execution or are already IP-banned.\n" +
+                                "# You must restart your server after changing this option for it to take effect.\n" +
+                                "localYtDlp: false\n" +
                                 "\n" + "\n" +
                                 "# ========== SELF-HOSTED MODE CONFIGURATION ==========\n" +
                                 "\n" +
@@ -119,6 +127,7 @@ public class URLCustomDiscs extends JavaPlugin {
         apiBaseURL = config.getString("apiBaseURL");
         token = config.getString("token");
         downloadPackURL = config.getString("downloadPackURL");
+        localYtDlp = config.getBoolean("localYtDlp");
         downloadResourcePackURL = config.getString("downloadResourcePackURL");
         minecraftServerType = config.getString("minecraftServerType");
         zipFilePath = config.getString("zipFilePath");
@@ -179,6 +188,7 @@ public class URLCustomDiscs extends JavaPlugin {
     public void setToken(String newToken) { this.token = newToken; }
     public String getDownloadPackURL() { return this.downloadPackURL != null ? this.downloadPackURL : ""; }
     public void setDownloadPackURL(String newDownloadPackURL) { this.downloadPackURL = newDownloadPackURL; }
+    public Boolean getLocalYtDlp() { return localYtDlp != null ? localYtDlp : false; }
     public String getDownloadResourcePackURL() { return downloadResourcePackURL; }
     public String getMinecraftServerType() { return minecraftServerType; }
     public String getZipFilePath() { return zipFilePath; }
