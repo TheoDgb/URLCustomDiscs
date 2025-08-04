@@ -116,6 +116,18 @@ public class CommandURLCustomDiscs implements CommandExecutor {
 
                     if (!downloaded || !mp3File.exists()) {
                         player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to download audio from the URL using local yt-dlp.");
+                        player.sendMessage(ChatColor.GRAY + "Attempting to update yt-dlp...");
+
+                        new YtDlpSetup(plugin).setup();
+
+                        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                            boolean retried = ytDlpUtils.downloadAudioWithYtDlp(input, mp3File);
+                            if (!retried || !mp3File.exists()) {
+                                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Download failed even after updating yt-dlp.");
+                                return;
+                            }
+                            player.sendMessage(ChatColor.GREEN + "Audio downloaded after updating yt-dlp.");
+                        }, 250L); // 15 secondes (20 ticks = 1 sec)
                         return true;
                     }
 
