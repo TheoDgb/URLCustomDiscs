@@ -4,7 +4,7 @@ Last updated on July 4, 2025.
 <img src="https://github.com/TheoDgb/URLCustomDiscs/blob/main/media/URLCustomDiscs_icon.png?raw=true" alt="URLCustomDiscs Icon" style="width: 10%;">
 
 ## About
-This plugin, along with a server resource pack, allows you to **create and play custom music discs from YouTube URLs** on your Minecraft server, with **real-time updates for players**.
+This plugin, along with a server resource pack, allows you to **create and play custom music discs from YouTube URLs or MP3 files** on your Minecraft server, with **real-time updates for players**.
 
 Once installed, everything is done **in-game**, and there's no need to manually edit the resource pack files to add or remove discs.
 
