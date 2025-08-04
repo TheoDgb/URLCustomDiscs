@@ -76,7 +76,7 @@ Delete a custom music disc:
 Show details of the custom music disc you're holding (useful for debugging):  
 `/customdisc info`
 
-Update the yt-dlp dependency:
+Update the yt-dlp dependency:  
 `/customdisc update`
 
 Vanilla command to play a custom track (can be used with coordinates):  
