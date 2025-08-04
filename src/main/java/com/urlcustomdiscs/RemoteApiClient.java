@@ -7,13 +7,11 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 public class RemoteApiClient {
 
@@ -83,49 +81,95 @@ public class RemoteApiClient {
         }
     }
 
-    public void createCustomDiscRemotely(Player player, String url, String discName, String audioType, JSONObject discInfo, String token) {
+    public void createCustomDiscRemotely(Player player, String finalAudioIdentifier, String discName, String audioType, JSONObject discInfo, String token) {
         player.sendMessage(ChatColor.GRAY + "Sending information to the remote API...");
+
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            boolean isLocalFile = !finalAudioIdentifier.toLowerCase().startsWith("http");
+            HttpURLConnection connection;
+
             try {
-                HttpURLConnection connection = createPostConnection("/create-custom-disc");
+                if (isLocalFile) {
+                    File mp3File = new File(plugin.getDataFolder(), "audio_to_send/" + finalAudioIdentifier);
+                    if (!mp3File.exists()) {
+                        Bukkit.getScheduler().runTask(plugin, () ->
+                                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "File not found: " + finalAudioIdentifier));
+                        return;
+                    }
 
-                JSONObject payload = new JSONObject();
-                payload.put("url", url);
-                payload.put("discName", discName);
-                payload.put("audioType", audioType);
-                payload.put("customModelData", discInfo.getInt("customModelData"));
-                payload.put("token", token);
+                    String boundary = Long.toHexString(System.currentTimeMillis());
+                    String CRLF = "\r\n";
 
-                try (OutputStream os = connection.getOutputStream()) {
-                    byte[] input = payload.toString().getBytes(StandardCharsets.UTF_8);
-                    os.write(input, 0, input.length);
-                }
+                    connection = createPostConnection("/create-custom-disc-from-mp3");
+                    connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+                    connection.setDoOutput(true);
 
-                int responseCode = connection.getResponseCode();
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    try (InputStream responseStream = connection.getInputStream()) {
-                        String response = new String(responseStream.readAllBytes(), StandardCharsets.UTF_8);
-                        Bukkit.getScheduler().runTask(plugin, () -> handleApiResponse(player, responseCode, response, discInfo, discName, "create"));
+                    try (
+                            OutputStream output = connection.getOutputStream();
+                            PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8), true)
+                    ) {
+                        // Text fields
+                        writer.append("--").append(boundary).append(CRLF);
+                        writer.append("Content-Disposition: form-data; name=\"discName\"").append(CRLF).append(CRLF).append(discName).append(CRLF);
+
+                        writer.append("--").append(boundary).append(CRLF);
+                        writer.append("Content-Disposition: form-data; name=\"audioType\"").append(CRLF).append(CRLF).append(audioType).append(CRLF);
+
+                        writer.append("--").append(boundary).append(CRLF);
+                        writer.append("Content-Disposition: form-data; name=\"customModelData\"").append(CRLF).append(CRLF)
+                                .append(String.valueOf(discInfo.getInt("customModelData"))).append(CRLF);
+
+                        writer.append("--").append(boundary).append(CRLF);
+                        writer.append("Content-Disposition: form-data; name=\"token\"").append(CRLF).append(CRLF).append(token).append(CRLF);
+
+                        // File field
+                        writer.append("--").append(boundary).append(CRLF);
+                        writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append(mp3File.getName()).append("\"").append(CRLF);
+                        writer.append("Content-Type: audio/mpeg").append(CRLF).append(CRLF);
+                        writer.flush();
+
+                        Files.copy(mp3File.toPath(), output);
+                        output.flush();
+                        writer.append(CRLF).flush();
+
+                        writer.append("--").append(boundary).append("--").append(CRLF).flush();
                     }
                 } else {
-                    InputStream errorStream = connection.getErrorStream();
-                    if (errorStream != null) {
-                        String errorResponse = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
-                        Bukkit.getScheduler().runTask(plugin, () -> handleApiResponse(player, responseCode, errorResponse, discInfo, discName, "create"));
-                    } else {
-                        Bukkit.getScheduler().runTask(plugin, () -> {
-                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to create disc. HTTP status: " + responseCode);
-                            plugin.getLogger().warning("API returned status: " + responseCode);
-                        });
+                    // Send JSON with URL
+                    connection = createPostConnection("/create-custom-disc");
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setDoOutput(true);
+
+                    JSONObject payload = new JSONObject();
+                    payload.put("url", finalAudioIdentifier);
+                    payload.put("discName", discName);
+                    payload.put("audioType", audioType);
+                    payload.put("customModelData", discInfo.getInt("customModelData"));
+                    payload.put("token", token);
+
+                    try (OutputStream os = connection.getOutputStream()) {
+                        byte[] inputBytes = payload.toString().getBytes(StandardCharsets.UTF_8);
+                        os.write(inputBytes, 0, inputBytes.length);
                     }
                 }
 
+                // Handle response
+                int responseCode = connection.getResponseCode();
+                InputStream responseStream = (responseCode >= 200 && responseCode < 300)
+                        ? connection.getInputStream()
+                        : connection.getErrorStream();
+
+                String response = new String(responseStream.readAllBytes(), StandardCharsets.UTF_8);
+
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        handleApiResponse(player, responseCode, response, discInfo, discName, "create")
+                );
+
             } catch (Exception e) {
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "An error occurred while sending the request.");
-                    plugin.getLogger().severe("Failed to send disc creation request:");
-                });
                 e.printStackTrace();
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "An error occurred while sending the request.")
+                );
             }
         });
     }

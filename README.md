@@ -10,7 +10,7 @@ Once installed, everything is done **in-game**, and there's no need to manually 
 
 The plugin supports Minecraft's spatial audio for music, but you can also play it in stereo.
 
-Additionally, Vanilla commands such as `/playsound` and `/stopsound` work with the custom music, so you do not need to use a disc in a jukebox.
+Additionally, vanilla commands such as `/playsound` and `/stopsound` work with the custom music, so you do not need to use a disc in a jukebox.
 
 **Important**: Make sure to use a direct video URL without any parameters (such as playlist, timecode, etc.), or you might get an unexpected result. Delete everything from the "&" in the URL.
 
@@ -44,28 +44,28 @@ Additionally, Vanilla commands such as `/playsound` and `/stopsound` work with t
 Display the list of commands:  
 `/customdisc help`
 
-Create a custom music disc from a YouTube URL:  
-`/customdisc create <URL> <disc name> <mono/stereo>`
-- mono: enables spatial audio (like played in a jukebox)
-- stereo: plays the sound in the traditional way
+Create a custom music disc from a YouTube URL or local MP3 file:  
+`/customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>`
+- mono: enables spatial audio (as when played in a jukebox)
+- stereo: plays the audio in the traditional way
 
-Give a custom music disc:  
-`/customdisc give <disc name>`
+Give yourself a custom music disc:  
+`/customdisc give <disc_name>`
 
-Display custom music discs list (you can give yourself a music disc directly by clicking on its name in the chat):  
+Show the list of custom music discs (click a disc name to autofill the give command):  
 `/customdisc list`
 
 Delete a custom music disc:  
-`/customdisc delete <disc name>`
+`/customdisc delete <disc_name>`
 
-Display custom music disc details in hand (used for debugging):  
+Show details of the custom music disc you're holding (useful for debugging):  
 `/customdisc info`
 
 Vanilla command to play a custom track (can be used with coordinates):  
-`/execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc name> ambient @a`
+`/execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc_name> ambient @a`
 
 Vanilla command to stop a custom track:  
-`/stopsound @a * minecraft:customdisc.<disc name>`
+`/stopsound @a * minecraft:customdisc.<disc_name>`
 
 ## Usage Modes
 The plugin offers **two modes of use**, depending on your setup and preferences:
@@ -116,7 +116,7 @@ This plugin requires a brief setup to ensure players automatically download the 
     - `apiBaseURL`: the base URL of the remote API
     - `token`: initially empty, automatically generated after creating your first custom disc
     - `downloadPackURL`, initially empty, automatically generated after creating your first custom disc
-5. Create your first custom disc in-game using the `/customdisc create <URL> <disc name> <mono/stereo>` command.  
+5. Create your first custom disc in-game using the `/customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>` command.  
    This action will generate your unique `token` and the `downloadPackURL`.
 6. Copy the generated `downloadPackURL` and paste it into your Minecraft server's `server.properties` file under the `resource-pack=` filed, for example:  
    `resource-pack=https://your-generated-downloadPackURL.zip`

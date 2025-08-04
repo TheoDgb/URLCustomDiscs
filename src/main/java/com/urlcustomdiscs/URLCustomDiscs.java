@@ -12,6 +12,7 @@ import java.util.Objects;
 
 public class URLCustomDiscs extends JavaPlugin {
     private File discUuidFile;
+    private File audioToSendFolder;
     private File editResourcePackFolder;
     private String pluginUsageMode;
     private String apiBaseURL;
@@ -155,6 +156,11 @@ public class URLCustomDiscs extends JavaPlugin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        audioToSendFolder = new File(getDataFolder(), "audio_to_send");
+        if (!audioToSendFolder.exists()) {
+            audioToSendFolder.mkdir();
         }
 
         editResourcePackFolder = new File(getDataFolder(), "editResourcePack"); // Assign to class variable

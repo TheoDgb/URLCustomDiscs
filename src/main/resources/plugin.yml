@@ -1,17 +1,34 @@
 name: URLCustomDiscs
 main: com.urlcustomdiscs.URLCustomDiscs
-version: 2.0.0
+version: 2.1.0
 api-version: 1.21
 author: Asson
 commands:
   customdisc:
     description: "Create and play custom music discs from YouTube URLs"
     usage: |
-      /customdisc help - Displays the list of commands
-      /customdisc create <URL> <disc name> <mono/stereo> - Creates a custom music disc from a Youtube URL
-      /customdisc give <disc name> - Gives a custom music disc
-      /customdisc list - Displays custom music discs list
-      /customdisc delete <disc name> - Deletes a custom music disc
-      /customdisc info - Displays custom music disc details in hand
-      /execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc name> ambient @a - Plays a disc (Vanilla)
-      /stopsound @a * minecraft:customdisc.<disc name> - Stops a disc (Vanilla)
+      Display the list of commands:
+      /customdisc help
+      
+      Create a custom music disc from a YouTube URL or local MP3 file:
+      - mono: enables spatial audio (as when played in a jukebox)
+      - stereo: plays the audio in the traditional way
+      /customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>
+      
+      Give yourself a custom music disc:
+      /customdisc give <disc_name>
+      
+      Show the list of custom music discs (click a disc name to autofill the give command):
+      /customdisc list
+      
+      Delete a custom music disc:
+      /customdisc delete <disc_name>
+      
+      Show details of the custom music disc you're holding (useful for debugging):
+      /customdisc info
+      
+      Vanilla command to play a custom track (can be used with coordinates):
+      /execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc_name> ambient @a
+      
+      Vanilla command to stop a custom track:
+      /stopsound @a * minecraft:customdisc.<disc_name>

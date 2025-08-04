@@ -1,4 +1,5 @@
 package com.urlcustomdiscs;
+import com.mpatric.mp3agic.Mp3File;
 import com.urlcustomdiscs.utils.DiscUtils;
 
 import net.md_5.bungee.api.chat.TextComponent;
@@ -64,45 +65,76 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         // /Help
         if (args.length == 1 && args[0].equalsIgnoreCase("help")) {
             player.sendMessage("");
-            player.sendMessage(ChatColor.YELLOW + "Usage of the command " + ChatColor.GOLD + "/customdisc:");
+            player.sendMessage(ChatColor.YELLOW + "Usage of the command " + ChatColor.GOLD + "/customdisc" + ChatColor.YELLOW + ":");
             player.sendMessage("");
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Create a custom music disc from a YouTube URL:");
-            player.sendMessage(ChatColor.YELLOW + "/customdisc create " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "URL" + ChatColor.GOLD + "> <" + ChatColor.YELLOW + "disc name" + ChatColor.GOLD + "> <" + ChatColor.YELLOW + "mono " + ChatColor.GOLD + "/ " + ChatColor.YELLOW + "stereo" + ChatColor.GOLD + ">");
-            player.sendMessage(ChatColor.GRAY + "- mono: enables spatial audio (like played in a jukebox)");
-            player.sendMessage(ChatColor.GRAY + "- stereo: plays the sound in the traditional way");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Create a custom music disc from a YouTube URL or local MP3 file:");
+            player.sendMessage(ChatColor.YELLOW + "/customdisc create " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "URL" + ChatColor.GOLD + " OR " + ChatColor.YELLOW + "audio_name.mp3" + ChatColor.GOLD + "> <" + ChatColor.YELLOW + "disc_name" + ChatColor.GOLD + "> <" + ChatColor.YELLOW + "mono" + ChatColor.GOLD + " / " + ChatColor.YELLOW + "stereo" + ChatColor.GOLD + ">");
+            player.sendMessage(ChatColor.GRAY + "- mono: enables spatial audio (as when played in a jukebox)");
+            player.sendMessage(ChatColor.GRAY + "- stereo: plays the audio in the traditional way");
             player.sendMessage("");
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Give a custom music disc:");
-            player.sendMessage(ChatColor.YELLOW + "/customdisc give " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "disc name" + ChatColor.GOLD + ">");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Give yourself a custom music disc:");
+            player.sendMessage(ChatColor.YELLOW + "/customdisc give " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "disc_name" + ChatColor.GOLD + ">");
             player.sendMessage("");
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Display custom music discs list:");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Show the list of custom music discs (clickable names):");
             player.sendMessage(ChatColor.YELLOW + "/customdisc list");
             player.sendMessage("");
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Delete a custom music disc:");
-            player.sendMessage(ChatColor.YELLOW + "/customdisc delete " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "disc name" + ChatColor.GOLD + ">");
+            player.sendMessage(ChatColor.YELLOW + "/customdisc delete " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "disc_name" + ChatColor.GOLD + ">");
             player.sendMessage("");
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Display custom music disc details in hand:");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Show details of the custom music disc you're holding:");
             player.sendMessage(ChatColor.YELLOW + "/customdisc info");
             player.sendMessage("");
-            player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Other useful (vanilla) command:");
-            player.sendMessage(ChatColor.AQUA + "/execute positioned ~ ~ ~ run playsound minecraft:customdisc." + ChatColor.DARK_AQUA + "<" + ChatColor.AQUA + "disc name" + ChatColor.DARK_AQUA + "> " + ChatColor.AQUA + "ambient @a");
-            player.sendMessage(ChatColor.AQUA + "/stopsound @a * minecraft:customdisc." + ChatColor.DARK_AQUA + "<" + ChatColor.AQUA + "disc name" + ChatColor.DARK_AQUA + ">");
+            player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Other useful vanilla commands:");
+            player.sendMessage(ChatColor.AQUA + "/execute positioned ~ ~ ~ run playsound minecraft:customdisc." + ChatColor.DARK_AQUA + "<" + ChatColor.AQUA + "disc_name" + ChatColor.DARK_AQUA + "> " + ChatColor.AQUA + "ambient @a");
+            player.sendMessage("");
+            player.sendMessage(ChatColor.AQUA + "/stopsound @a * minecraft:customdisc." + ChatColor.DARK_AQUA + "<" + ChatColor.AQUA + "disc_name" + ChatColor.DARK_AQUA + ">");
             player.sendMessage("");
             return true;
         }
 
         // Commande pour créer un disque custom
         if (args.length == 4 && args[0].equalsIgnoreCase("create")) {
-            String url = args[1];
+            String input = args[1];
             String rawDiscName = args[2].replaceAll("[^a-zA-Z0-9_-]", "_");
             String audioType = args[3].toLowerCase(); // "mono" ou "stereo"
 
+            String audio;
+
             try {
-                new URL(url);
+                // Checks if input is a valid URL
+                new URL(input);
+                audio = input;
             } catch (MalformedURLException e) {
-                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "The provided URL is invalid.");
-                return false;
+                // If it is not a URL we check if it is an MP3 file in the audio_to_send folder
+                File localMp3 = new File(plugin.getDataFolder(), "audio_to_send/" + input);
+                if (localMp3.exists() && localMp3.isFile() && input.toLowerCase().endsWith(".mp3")) {
+                    // Check audio file size
+                    long maxSize = 12L * 1024L * 1024L; // 12 MB
+                    if (localMp3.length() > maxSize) {
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "The audio file exceeds the maximum allowed size of 12MB.");
+                        return true;
+                    }
+                    // Check audio file duration with MP3agic
+                    try {
+                        Mp3File mp3file = new Mp3File(localMp3);
+                        long durationSeconds = mp3file.getLengthInSeconds();
+                        if (durationSeconds > 300) { // 5 minutes
+                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "The audio file exceeds the maximum allowed length of 5 minutes.");
+                            return true;
+                        }
+                    } catch (Exception ex) {
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Unable to read the duration of the audio file.");
+                        return true;
+                    }
+                    audio = input;
+                } else {
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Invalid input: not a valid URL or .mp3 file in the audio_to_send folder.");
+                    player.sendMessage(ChatColor.GOLD + "Usage: " + ChatColor.YELLOW + "/customdisc help");
+                    return true;
+                }
             }
 
+            final String finalAudioIdentifier = audio;
             final String displayName = rawDiscName;
             final String discName = displayName.toLowerCase();
 
@@ -113,17 +145,24 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                     discInfo = discManager.getOrCreateDisc(discName, displayName);
                 } catch (IOException e) {
                     e.printStackTrace();
-                } final JSONObject discInfoFinal = discInfo;
+                }
+                final JSONObject discInfoFinal = discInfo;
 
                 if (plugin.getToken().isEmpty()) {
                     remoteApiClient.requestTokenFromRemoteServer(player, () -> {
-                        remoteApiClient.createCustomDiscRemotely(player, url, discName, audioType, discInfoFinal, plugin.getToken());
+                        remoteApiClient.createCustomDiscRemotely(player, finalAudioIdentifier, discName, audioType, discInfoFinal, plugin.getToken());
                     });
                 } else {
-                    remoteApiClient.createCustomDiscRemotely(player, url, discName, audioType, discInfoFinal, plugin.getToken());
+                    remoteApiClient.createCustomDiscRemotely(player, finalAudioIdentifier, discName, audioType, discInfoFinal, plugin.getToken());
                 }
                 return true;
             } else if (pluginUsageMode.equalsIgnoreCase("self-hosted")) {
+                // Vérifier si l'audio est un chemin de fichier mp3 (pas une URL)
+                if (audio.toLowerCase().endsWith(".mp3")) {
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Self-hosted mode doesn't support creating disc from local MP3 file.");
+                    return true;
+                }
+
                 // Créer les fichiers mp3 et ogg
                 File musicFolder = new File(plugin.getDataFolder(), "music");
                 if (!musicFolder.exists()) musicFolder.mkdirs();
@@ -167,7 +206,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                         player.sendMessage(ChatColor.GRAY + "Downloading URL music to MP3...");
                         plugin.getLogger().info("Downloading URL music to MP3...");
                         ProcessBuilder ytDlp = new ProcessBuilder(ytDlpExecutable, "-f", "bestaudio[ext=m4a]/best",
-                                "--audio-format", "mp3", "-o", mp3File.getAbsolutePath(), url);
+                                "--audio-format", "mp3", "-o", mp3File.getAbsolutePath(), finalAudioIdentifier);
                         Process ytDlpProcess = ytDlp.start();
 
                         // Lire la sortie de yt-dlp pour débogage
@@ -426,8 +465,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         }
 
         player.sendMessage(ChatColor.GOLD + "Usage: " + ChatColor.YELLOW + "/customdisc help");
-
-        return false;
+        return true;
     }
 
     private void updateSoundsJson(String discName) {

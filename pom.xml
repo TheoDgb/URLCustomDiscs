@@ -38,10 +38,15 @@
             <artifactId>bungeecord-chat</artifactId>
             <version>1.20-R0.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.mpatric</groupId>
+            <artifactId>mp3agic</artifactId>
+            <version>0.9.1</version>
+        </dependency>
     </dependencies>
 
     <build>
-        <finalName>URLCustomDiscs-2.0.0-1.21.0-1.21.1</finalName>
+        <finalName>URLCustomDiscs-2.1.0-1.21.0-1.21.1</finalName>
 
         <plugins>
             <plugin>
