@@ -18,7 +18,7 @@ import java.util.*;
 public class JukeboxListener implements Listener {
 
     private final URLCustomDiscs plugin;
-    private final Map<Location, Set<String>> activeJukeboxes = new HashMap<>();  // Utiliser un Set pour permettre plusieurs sons
+    private final Map<Location, Set<String>> activeJukeboxes = new HashMap<>();  // Use a Set to enable multiple sounds
 
     public JukeboxListener(URLCustomDiscs plugin) {
         this.plugin = plugin;
@@ -34,37 +34,37 @@ public class JukeboxListener implements Listener {
             Jukebox jukebox = (Jukebox) jukeboxBlock.getState();
             Location jukeboxLocation = jukebox.getLocation();
 
-            // Vérifier si un disque vanilla est joué
-            ItemStack currentRecord = jukebox.getInventory().getItem(0);  // L'index 0 est généralement pour le disque du jukebox
+            // Check if a vanilla disc is playing
+            ItemStack currentRecord = jukebox.getInventory().getItem(0);  // Index 0 is usually for the jukebox disc
             if (currentRecord != null && currentRecord.getType() != Material.AIR) {
                 jukebox.getInventory().clear();
-                event.setCancelled(true); // Annule l'événement pour empêcher la lecture par défaut
-                // Planifie une tâche pour vider le jukebox et arrêter la musique
+                event.setCancelled(true); // Cancel event to prevent playback by default
+                // Schedule a task to empty the jukebox and stop the music
                 plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 }, 1L);
             }
 
-            // Si le jukebox est déjà actif, on arrête la musique et on retire le disque
+            // If the jukebox is already active, stop the music and remove the disc
             Set<String> activeSounds = activeJukeboxes.get(jukeboxLocation);
             if (activeSounds != null && !activeSounds.isEmpty()) {
                 // Arrêter tous les sons associés à ce jukebox
                 for (String currentSoundKey : activeSounds) {
 
-                    // Arrêter le son pour tous les joueurs
-                    // stopsound à des coordonnées... beautiful dream
+                    // Mute sound for all players
+                    // stopsound at coordinates... beautiful dream
                     // for (Player onlinePlayer : plugin.getServer().getOnlinePlayers()) {
                     //     onlinePlayer.stopSound(currentSoundKey, org.bukkit.SoundCategory.RECORDS);
                     // }
 
-                    // Arrêter le son (commande vanilla) pour tous les joueurs dans une portée de 50 blocks autour du jukebox
+                    // Stop sound (vanilla command) for all players within 50 blocks of the jukebox
                     plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(),
                             "execute positioned " + jukeboxLocation.getBlockX() + " " + jukeboxLocation.getBlockY() + " " + jukeboxLocation.getBlockZ() +
                                     " run stopsound @a[distance=..80] * minecraft:" + currentSoundKey);
                 }
-                activeSounds.clear();  // Vide la liste des sons actifs
-                jukebox.getInventory().clear(); // Éjecte le disque
+                activeSounds.clear();  // Clears the list of active sounds
+                jukebox.getInventory().clear(); // Eject the disc
                 event.setCancelled(true);
-                // Forcer la suppression du disque dans le jukebox
+                // Force delete disc from jukebox
                 plugin.getServer().getScheduler().runTaskLater(plugin, () -> jukebox.setRecord(null), 1L);
                 return;
             }
@@ -79,15 +79,15 @@ public class JukeboxListener implements Listener {
                     if (discName != null) {
                         String soundKey = "customdisc." + discName;
 
-                        // Jouer la musique personnalisée
+                        // Play custom music
                         jukebox.getWorld().playSound(jukeboxLocation, soundKey, org.bukkit.SoundCategory.RECORDS, 5.0f, 1.0f);
 
-                        // Ajouter le son à la liste des sons actifs de ce jukebox
+                        // Add the sound to the list of active sounds of this jukebox
                         activeJukeboxes
                                 .computeIfAbsent(jukeboxLocation, k -> new HashSet<>())
                                 .add(soundKey);
 
-                        event.setCancelled(true); // Empêcher le jukebox de jouer le disque 13 par défaut
+                        event.setCancelled(true); // Prevent the jukebox from playing disc 13 by default
                     }
                 }
             }

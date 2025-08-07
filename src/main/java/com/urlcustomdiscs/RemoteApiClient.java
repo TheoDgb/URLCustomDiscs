@@ -23,13 +23,18 @@ public class RemoteApiClient {
         this.apiBaseURL = apiBaseURL;
     }
 
-    public void requestTokenFromRemoteServer(Player player, Runnable onSuccess) {
+    public void requestTokenFromRemoteServer(Player player, String minecraftServerVersion, Runnable onSuccess) {
         player.sendMessage(ChatColor.GRAY + "Registering the server with the remote API...");
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 HttpURLConnection connection = createPostConnection("/register-mc-server");
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setDoOutput(true);
 
-                String jsonInputString = "{}";
+                JSONObject payload = new JSONObject();
+                payload.put("minecraftServerVersion", minecraftServerVersion);
+                String jsonInputString = payload.toString();
+
                 try (OutputStream os = connection.getOutputStream()) {
                     byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
                     os.write(input, 0, input.length);
@@ -81,7 +86,7 @@ public class RemoteApiClient {
         }
     }
 
-    public void createCustomDiscRemotely(Player player, String finalAudioIdentifier, String discName, String audioType, JSONObject discInfo, String token) {
+    public void createCustomDiscRemotely(Player player, String finalAudioIdentifier, String discName, String audioType, JSONObject discInfo, String token, String minecraftServerVersion) {
         player.sendMessage(ChatColor.GRAY + "Sending information to the remote API...");
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
@@ -122,6 +127,9 @@ public class RemoteApiClient {
                         writer.append("--").append(boundary).append(CRLF);
                         writer.append("Content-Disposition: form-data; name=\"token\"").append(CRLF).append(CRLF).append(token).append(CRLF);
 
+                        writer.append("--").append(boundary).append(CRLF);
+                        writer.append("Content-Disposition: form-data; name=\"minecraftServerVersion\"").append(CRLF).append(CRLF).append(minecraftServerVersion).append(CRLF);
+
                         // File field
                         writer.append("--").append(boundary).append(CRLF);
                         writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append(mp3File.getName()).append("\"").append(CRLF);
@@ -146,6 +154,7 @@ public class RemoteApiClient {
                     payload.put("audioType", audioType);
                     payload.put("customModelData", discInfo.getInt("customModelData"));
                     payload.put("token", token);
+                    payload.put("minecraftServerVersion", minecraftServerVersion);
 
                     try (OutputStream os = connection.getOutputStream()) {
                         byte[] inputBytes = payload.toString().getBytes(StandardCharsets.UTF_8);
@@ -174,8 +183,9 @@ public class RemoteApiClient {
         });
     }
 
-    public void deleteCustomDiscRemotely(Player player, String discName, JSONObject discInfo, String token) {
+    public void deleteCustomDiscRemotely(Player player, String discName, JSONObject discInfo, String token, String minecraftServerVersion) {
         player.sendMessage(ChatColor.GRAY + "Sending information to the remote API...");
+
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 HttpURLConnection connection = createPostConnection("/delete-custom-disc");
@@ -183,6 +193,7 @@ public class RemoteApiClient {
                 JSONObject payload = new JSONObject();
                 payload.put("discName", discName);
                 payload.put("token", token);
+                payload.put("minecraftServerVersion", minecraftServerVersion);
 
                 try (OutputStream os = connection.getOutputStream()) {
                     byte[] input = payload.toString().getBytes(StandardCharsets.UTF_8);
@@ -236,6 +247,7 @@ public class RemoteApiClient {
 
                         // Generate the custom disc in memory and add it to the player's inventory
                         DiscFactory.giveCustomDiscToPlayer(player, discInfo);
+//                        DiscFactory.giveCustomDiscToPlayer(player, discName, discInfo);
 
                         // Browse all online players and send them the resource pack
                         String downloadPackURL = plugin.getDownloadPackURL();

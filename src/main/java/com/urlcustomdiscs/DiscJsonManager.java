@@ -29,8 +29,12 @@ public class DiscJsonManager {
         JSONObject discInfo = new JSONObject();
         discInfo.put("uuid", newUUID);
 
-        int customModelData = (int) (Long.parseLong(newUUID.replace("-", "").substring(0, 8), 16) & 0x7FFFFFFF);
+        int rawModelData = (int) (Long.parseLong(newUUID.replace("-", "").substring(0, 8), 16) & 0x7FFFFF); // Max 23 bits
+        // Round the customModelData to be 1.21.4 compatible
+        int customModelData = (rawModelData / 16) * 16; // Round down to a multiple of 16
+
         discInfo.put("customModelData", customModelData);
+        plugin.getLogger().info("Generated customModelData: " + customModelData);
         discInfo.put("displayName", displayName);
 
         discData.put(discName, discInfo);

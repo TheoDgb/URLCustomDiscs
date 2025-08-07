@@ -63,7 +63,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             return false;
         }
 
-        // /Help
+        // Help command
         if (args.length == 1 && args[0].equalsIgnoreCase("help")) {
             player.sendMessage("");
             player.sendMessage(ChatColor.YELLOW + "Usage of the command " + ChatColor.GOLD + "/customdisc" + ChatColor.YELLOW + ":");
@@ -72,6 +72,10 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             player.sendMessage(ChatColor.YELLOW + "/customdisc create " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "URL" + ChatColor.GOLD + " OR " + ChatColor.YELLOW + "audio_name.mp3" + ChatColor.GOLD + "> <" + ChatColor.YELLOW + "disc_name" + ChatColor.GOLD + "> <" + ChatColor.YELLOW + "mono" + ChatColor.GOLD + " / " + ChatColor.YELLOW + "stereo" + ChatColor.GOLD + ">");
             player.sendMessage(ChatColor.GRAY + "- mono: enables spatial audio (as when played in a jukebox)");
             player.sendMessage(ChatColor.GRAY + "- stereo: plays the audio in the traditional way");
+            player.sendMessage(ChatColor.GRAY + "Instructions for local MP3 files (admin-only):");
+            player.sendMessage(ChatColor.GRAY + "- Place your MP3 file inside the audio_to_send folder in the plugin directory");
+            player.sendMessage(ChatColor.GRAY + "- Rename the MP3 file to a simple name with no spaces and no special characters.");
+            player.sendMessage(ChatColor.GRAY + "- Don't forget to include the .mp3 extension in the audio_name.mp3 field.");
             player.sendMessage("");
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Give yourself a custom music disc:");
             player.sendMessage(ChatColor.YELLOW + "/customdisc give " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "disc_name" + ChatColor.GOLD + ">");
@@ -96,7 +100,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             return true;
         }
 
-        // Commande to create a custom disc
+        // Command to create a custom disc
         if (args.length == 4 && args[0].equalsIgnoreCase("create")) {
             String input = args[1];
             String rawDiscName = args[2].replaceAll("[^a-zA-Z0-9_-]", "_");
@@ -180,22 +184,24 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 }
                 final JSONObject discInfoFinal = discInfo;
 
+                String minecraftServerVersion = plugin.getMinecraftServerVersion();
+
                 if (plugin.getToken().isEmpty()) {
-                    remoteApiClient.requestTokenFromRemoteServer(player, () -> {
-                        remoteApiClient.createCustomDiscRemotely(player, finalAudioIdentifier, discName, audioType, discInfoFinal, plugin.getToken());
+                    remoteApiClient.requestTokenFromRemoteServer(player, minecraftServerVersion, () -> {
+                        remoteApiClient.createCustomDiscRemotely(player, finalAudioIdentifier, discName, audioType, discInfoFinal, plugin.getToken(), minecraftServerVersion);
                     });
                 } else {
-                    remoteApiClient.createCustomDiscRemotely(player, finalAudioIdentifier, discName, audioType, discInfoFinal, plugin.getToken());
+                    remoteApiClient.createCustomDiscRemotely(player, finalAudioIdentifier, discName, audioType, discInfoFinal, plugin.getToken(), minecraftServerVersion);
                 }
                 return true;
             } else if (pluginUsageMode.equalsIgnoreCase("self-hosted")) {
-                // Vérifier si l'audio est un chemin de fichier mp3 (pas une URL)
+                // Check if the audio is an mp3 file path (not a URL)
                 if (audio.toLowerCase().endsWith(".mp3")) {
                     player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Self-hosted mode doesn't support creating disc from local MP3 file.");
                     return true;
                 }
 
-                // Créer les fichiers mp3 et ogg
+                // Create mp3 and ogg files
                 File musicFolder = new File(plugin.getDataFolder(), "music");
                 if (!musicFolder.exists()) musicFolder.mkdirs();
 
@@ -205,7 +211,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 String oggFileName = discName + ".ogg";
                 File oggFile = new File(musicFolder, oggFileName);
 
-                // Supprimer les fichiers existants s'ils sont déjà présents
+                // Delete files if they already exist
                 if (mp3File.exists()) mp3File.delete();
                 if (oggFile.exists()) oggFile.delete();
 
@@ -241,7 +247,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                                 "--audio-format", "mp3", "-o", mp3File.getAbsolutePath(), finalAudioIdentifier);
                         Process ytDlpProcess = ytDlp.start();
 
-                        // Lire la sortie de yt-dlp pour débogage
+                        // Read yt-dlp output for debugging
                         Thread ytDlpOutputThread = new Thread(() -> {
                             try (BufferedReader reader = new BufferedReader(new InputStreamReader(ytDlpProcess.getInputStream()))) {
                                 String line;
@@ -254,12 +260,11 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                         });
                         ytDlpOutputThread.start();
 
-                        int ytDlpExitCode = ytDlpProcess.waitFor(); // Attendre la fin du téléchargement
-                        ytDlpOutputThread.join(); // S'assurer que la lecture de la sortie est terminée
+                        int ytDlpExitCode = ytDlpProcess.waitFor(); // Wait for the download to complete
+                        ytDlpOutputThread.join(); // Ensure output reading is complete
 
                         if (ytDlpExitCode == 0) {
-                            // This plugin uses libraries from the FFmpeg project under the LGPLv2.1
-                            // Convertir le fichier mp3 en ogg mono ou stereo
+                            // Convert mp3 file to ogg mono or stereo
                             player.sendMessage(ChatColor.GRAY + "Converting MP3 to Ogg...");
                             plugin.getLogger().info("Converting MP3 to Ogg...");
                             ProcessBuilder ffmpeg;
@@ -273,7 +278,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                             }
                             Process ffmpegProcess = ffmpeg.start();
 
-                            // Lire la sortie de ffmpeg pour débogage
+                            // Read ffmpeg output for debugging
                             new Thread(() -> {
                                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(ffmpegProcess.getInputStream()))) {
                                     String line;
@@ -285,7 +290,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                                 }
                             }).start();
 
-                            // Lire les erreurs de ffmpeg pour débogage
+                            // Read ffmpeg errors for debugging
                             new Thread(() -> {
                                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(ffmpegProcess.getErrorStream()))) {
                                     String line;
@@ -297,10 +302,10 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                                 }
                             }).start();
 
-                            int ffmpegExitCode = ffmpegProcess.waitFor(); // Attendre la fin de la conversion
+                            int ffmpegExitCode = ffmpegProcess.waitFor(); // Wait for the conversion to complete
 
                             if (ffmpegExitCode == 0) {
-                                // Suppression du fichier .mp3 après conversion si nécessaire
+                                // Delete the .mp3 file after conversion
                                 if (mp3File.exists()) mp3File.delete();
                                 player.sendMessage(ChatColor.GRAY + "Music downloaded and converted.");
                                 plugin.getLogger().info("Music downloaded and converted.");
@@ -312,9 +317,9 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                                     if (oggFile.delete()) {
                                         plugin.getLogger().info("Deleted Ogg file from music folder.");
 
-                                        // Met à jour sounds.json
+                                        // Update sounds.json
                                         updateSoundsJson(discName);
-                                        // Créer et donner le disque personnalisé au joueur
+                                        // Create and give the personalized disc to the player
                                         createCustomMusicDisc(player, discName, displayName);
                                     } else {
                                         plugin.getLogger().severe("Error deleting Ogg file from music folder.");
@@ -358,7 +363,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                                     }
                                 }
 
-                                // Parcourir tous les joueurs en ligne et leur envoyer le pack de ressources
+                                // Browse all online players and send them the resource pack
                                 for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                                     onlinePlayer.setResourcePack(downloadResourcePackURL);
                                 }
@@ -383,14 +388,14 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             }
         }
 
-        // Commande pour se give un disque existant
+        // Command to give yourself a custom disc
         if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
             String discName = args[1].toLowerCase().replaceAll(" ", "_");
             giveCustomMusicDisc(player, discName);
             return true;
         }
 
-        // Commande pour afficher la liste des disques
+        // Command to show the list of custom discs
         if (args.length == 1 && args[0].equalsIgnoreCase("list")) {
             JSONObject discData = DiscUtils.loadDiscData(discUuidFile);
 
@@ -400,22 +405,22 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             }
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "List of custom music discs:");
 
-            // Trier les noms des disques par ordre alphabétique
+            // Sort disc names alphabetically
             List<String> discNames = new ArrayList<>(discData.keySet());
             Collections.sort(discNames);
             for (String discName : discNames) {
-                // Récupérer l'objet correspondant au disque
+                // Retrieve the object corresponding to the disc
                 JSONObject discInfo = discData.getJSONObject(discName);
-                // Récupérer le displayName de chaque disque
+                // Retrieve the displayName of each disc
                 String displayName = discInfo.getString("displayName");
-                // Créer le TextComponent en utilisant le displayName
+                // Create the TextComponent using the displayName
                 TextComponent discText = createDiscTextComponent(displayName);
                 player.spigot().sendMessage(discText);
             }
             return true;
         }
 
-        // Commande de suppression d'un disque
+        // Command to delete a custom disc
         if (args.length == 2 && args[0].equalsIgnoreCase("delete")) {
             String discName = args[1].toLowerCase().replaceAll(" ", "_");
             if (pluginUsageMode.equalsIgnoreCase("api")) {
@@ -433,7 +438,9 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                     return true;
                 }
 
-                remoteApiClient.deleteCustomDiscRemotely(player, discName, discInfoFinal, token);
+                String minecraftServerVersion = plugin.getMinecraftServerVersion();
+
+                remoteApiClient.deleteCustomDiscRemotely(player, discName, discInfoFinal, token, minecraftServerVersion);
                 return true;
             } else if (pluginUsageMode.equalsIgnoreCase("self-hosted")) {
                 if (minecraftServerType.equals("local")) {
@@ -457,7 +464,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             }
         }
 
-        // Commande pour obtenir des informations sur le disque en main
+        // Command to get information about the disc in hand
         if (args.length == 1 && args[0].equalsIgnoreCase("info")) {
             ItemStack itemInHand = player.getInventory().getItemInMainHand();
 
@@ -466,9 +473,9 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 if (meta != null && meta.hasCustomModelData()) {
                     int customModelData = meta.getCustomModelData();
 
-                    // Charger les données des disques depuis le fichier JSON
+                    // Load disc data from JSON file
                     JSONObject discData = DiscUtils.loadDiscData(discUuidFile);
-                    // Trouver le nom du disque à partir du CustomModelData
+                    // Find the disc name from the CustomModelData
                     String discName = DiscUtils.getDiscNameFromCustomModelData(discData, customModelData);
 
                     if (discName != null) {
@@ -477,7 +484,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                         String discUUID = discInfo.getString("uuid");
                         String soundKey = "customdisc." + discName.toLowerCase().replaceAll(" ", "_");
 
-                        // Envoyer les informations au joueur
+                        // Send information to the player
                         player.sendMessage(ChatColor.GRAY + "Disc played: " + ChatColor.GOLD + discName);
                         player.sendMessage(ChatColor.GRAY + "Display name: " + ChatColor.GOLD + displayName);
                         player.sendMessage(ChatColor.GRAY + "UUID: " + ChatColor.GOLD + discUUID);
@@ -524,21 +531,30 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         return true;
     }
 
+
+
+
+
+
+
+    // Have fun with everything that's left below, I won't touch it anymore XD (FOR SELF-HOSTED CONFIGURATION UNDER VERSION 1.21.4 EXCLUDED)
+    // Hi btw!
+
     private void updateSoundsJson(String discName) {
         String jsonPathInZip = "assets/minecraft/sounds.json";
         try {
-            // Créer un fichier temporaire pour extraire le JSON
+            // Create a temporary file to extract the JSON
             File tempJson = File.createTempFile("sounds", ".json");
 
-            // Extraire sounds.json du ZIP
+            // Extract sounds.json from the ZIP
             extractFileFromZip(zipFilePath, jsonPathInZip, tempJson);
 
-            // Lire ou créer le JSON
+            // Read or create JSON
             JSONObject soundsJson = tempJson.exists()
                     ? new JSONObject(Files.readString(tempJson.toPath()))
                     : new JSONObject();
 
-            // Ajouter le nouveau son
+            // Add the new sound
             String soundKey = "customdisc." + discName;
 
             if (!soundsJson.has(soundKey)) {
@@ -549,14 +565,14 @@ public class CommandURLCustomDiscs implements CommandExecutor {
 
                 soundsJson.put(soundKey, soundData);
 
-                // Sauvegarder les modifications dans le fichier temporaire
+                // Save changes to the temporary file
                 Files.writeString(tempJson.toPath(), soundsJson.toString(4));
 
-                // Remettre le fichier modifié dans le ZIP
+                // Put the modified file back into the ZIP
                 addFileToZip(zipFilePath, tempJson, jsonPathInZip);
             }
 
-            // Supprimer le fichier temporaire
+            // Delete the temporary file
             tempJson.delete();
         } catch (IOException e) {
             e.printStackTrace();
@@ -565,7 +581,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
 
     private void createCustomMusicDisc(Player player, String discName, String displayName) {
         try {
-            // Charger le fichier JSON des disques
+            // Load the JSON file from the discs
             JSONObject discData;
             if (discUuidFile.exists()) {
                 String content = Files.readString(discUuidFile.toPath());
@@ -574,55 +590,55 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 discData = new JSONObject();
             }
 
-            // Vérifier si le disque existe déjà dans le fichier JSON
+            // Check if disc already exists in JSON file
             JSONObject discInfo;
-            if (discData.has(discName)) { // Récupérer les informations existantes
+            if (discData.has(discName)) { // Retrieve existing information
                 discInfo = discData.getJSONObject(discName);
-            } else { // Générer un nouvel UUID pour le disque
+            } else { // Generate a new UUID for the disc
                 String newUUID = UUID.randomUUID().toString();
                 discInfo = new JSONObject();
                 discInfo.put("uuid", newUUID);
 
-                // Calculer le customModelData à partir de l'UUID
-                // Supprime les tirets de l'UUID, Prend les 8 premiers caractères hexadécimaux, Convertit cette partie de l'UUID en un nombre long, Garde un nombre positif dans la limite de int
+                // Calculate customModelData from UUID
+                // Remove dashes from the UUID, Takes the first 8 hexadecimal characters, Converts that part of the UUID to a long number, Keeps a positive number within the limit of int
                 int customModelData = (int) (Long.parseLong(newUUID.replace("-", "").substring(0, 8), 16) & 0x7FFFFFFF);
                 discInfo.put("customModelData", customModelData);
 
                 discInfo.put("displayName", displayName);
 
-                // Enregistrer les nouvelles informations dans le fichier JSON
+                // Save the new information to the JSON file
                 discData.put(discName, discInfo);
                 Files.writeString(discUuidFile.toPath(), discData.toString(4));
             }
 
-            // Créer le disque
+            // Create the disc
             ItemStack disc = new ItemStack(Material.MUSIC_DISC_13);
             ItemMeta meta = disc.getItemMeta();
 
             if (meta != null) {
-                // Définir le nom du disque
+                // Set disc name
                 meta.setDisplayName(ChatColor.GOLD + displayName);
 
-                // Ajouter une description personnalisée
+                // Add a custom description
                 List<String> lore = new ArrayList<>();
                 lore.add(ChatColor.GRAY + "Custom music disc: " + displayName); // Description avec le nom du disque
                 meta.setLore(lore);
 
-                // Utiliser le customModelData calculé
+                // Use the calculated customModelData
                 int customModelData = discInfo.getInt("customModelData");
                 meta.setCustomModelData(customModelData);
 
-                // Masquer "C418 - 13"
+                // Hide "C418 - 13"
                 // cant (or rather lazy to create a new json just for that)
 
-                // Appliquer les modifications à l'objet ItemStack
+                // Apply changes to the ItemStack object
                 disc.setItemMeta(meta);
 
                 updateDiscModelJson(discName, customModelData);
                 createCustomMusicDiscJson(discName);
             }
 
-            // Ajouter le disque à l'inventaire du joueur
+            // Add the disc to the player's inventory
             player.getInventory().addItem(disc);
             player.sendMessage(ChatColor.GRAY + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GRAY + " created.");
         } catch (IOException e) {
@@ -634,13 +650,13 @@ public class CommandURLCustomDiscs implements CommandExecutor {
     private void updateDiscModelJson(String discName, int customModelData) {
         String modelPathInZip = "assets/minecraft/models/item/music_disc_13.json";
         try {
-            // Fichier temporaire pour extraire et modifier le JSON
+            // Temporary file to extract and modify the JSON
             File tempJson = File.createTempFile("music_disc_13", ".json");
 
-            // Extraire music_disc_13.json du ZIP
+            // Extract music_disc_13.json from the ZIP
             extractFileFromZip(zipFilePath, modelPathInZip, tempJson);
 
-            // Lire ou créer le JSON
+            // Read or create JSON
             JSONObject modelJson = tempJson.exists()
                     ? new JSONObject(Files.readString(tempJson.toPath()))
                     : new JSONObject();
@@ -654,7 +670,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             newOverride.put("predicate", new JSONObject().put("custom_model_data", customModelData));
             newOverride.put("model", "item/custom_music_disc_" + discName);
 
-            // Vérifier si l'override existe déjà
+            // Check if override already exists
             boolean exists = false;
             for (int i = 0; i < overrides.length(); i++) {
                 if (overrides.getJSONObject(i).getJSONObject("predicate").getInt("custom_model_data") == customModelData) {
@@ -667,11 +683,11 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 overrides.put(newOverride);
                 Files.writeString(tempJson.toPath(), modelJson.toString(4));
 
-                // Ajouter le fichier modifié dans le ZIP
+                // Add the modified file to the ZIP
                 addFileToZip(zipFilePath, tempJson, modelPathInZip);
             }
 
-            tempJson.delete(); // Nettoyage
+            tempJson.delete(); // Cleaning
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -681,20 +697,20 @@ public class CommandURLCustomDiscs implements CommandExecutor {
     private void createCustomMusicDiscJson(String discName) {
         String modelPathInZip = "assets/minecraft/models/item/custom_music_disc_" + discName + ".json";
         try {
-            // Créer un fichier temporaire JSON
+            // Create a temporary JSON file
             File tempJson = File.createTempFile("custom_music_disc_" + discName, ".json");
 
-            // Créer le JSON pour le disque
+            // Create JSON for disc
             JSONObject discJson = new JSONObject();
             discJson.put("parent", "minecraft:item/generated");
             discJson.put("textures", new JSONObject().put("layer0", "minecraft:item/record_custom"));
 
-            // Écrire le fichier JSON temporaire
+            // Write the temporary JSON file
             Files.writeString(tempJson.toPath(), discJson.toString(4));
-            // Ajouter le JSON dans le ZIP
+            // Add the JSON to the ZIP
             addFileToZip(zipFilePath, tempJson, modelPathInZip);
 
-            tempJson.delete(); // Nettoyage
+            tempJson.delete(); // Cleaning
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -715,9 +731,9 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             byte[] buffer = new byte[1024];
             int length;
 
-            // Copier tous les fichiers existants du ZIP
+            // Copy all existing files from the ZIP
             while ((entry = zis.getNextEntry()) != null) {
-                if (!entry.getName().equals(entryPath)) { // Ne pas dupliquer si déjà présent
+                if (!entry.getName().equals(entryPath)) { // Do not duplicate if already exists
                     zos.putNextEntry(new ZipEntry(entry.getName()));
                     while ((length = zis.read(buffer)) > 0) {
                         zos.write(buffer, 0, length);
@@ -727,7 +743,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 zis.closeEntry();
             }
 
-            // Ajouter le nouveau fichier
+            // Add the new file
             zos.putNextEntry(new ZipEntry(entryPath));
             while ((length = fis.read(buffer)) > 0) {
                 zos.write(buffer, 0, length);
@@ -745,26 +761,6 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     private void extractFileFromZip(String zipFilePath, String fileInZip, File outputFile) {
         try (ZipFile zipFile = new ZipFile(zipFilePath)) {
             ZipEntry entry = zipFile.getEntry(fileInZip);
@@ -773,7 +769,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 return;
             }
 
-            // Lire l'entrée du ZIP et écrire dans outputFile
+            // Read input from ZIP and write to outputFile
             try (InputStream inputStream = zipFile.getInputStream(entry);
                  FileOutputStream outputStream = new FileOutputStream(outputFile)) {
                 byte[] buffer = new byte[1024];
@@ -794,11 +790,11 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 return;
             }
 
-            // Lire le fichier JSON des disques
+            // Read JSON file from discs
             String content = Files.readString(discUuidFile.toPath());
             JSONObject discData = new JSONObject(content);
 
-            // Vérifier si le disque existe
+            // Check if the disk exists
             if (!discData.has(discName)) {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "The disc '" + discName + "' doesn't exist.");
                 return;
@@ -808,7 +804,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             int customModelData = discInfo.getInt("customModelData");
             String displayName = discInfo.getString("displayName");
 
-            // Créer le disque avec les mêmes propriétés que lors de la création
+            // Create the disc with the same properties as when it was created
             ItemStack disc = new ItemStack(Material.MUSIC_DISC_13);
             ItemMeta meta = disc.getItemMeta();
 
@@ -818,11 +814,11 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 lore.add(ChatColor.GRAY + "Custom music disc: " + displayName);
                 meta.setLore(lore);
                 meta.setCustomModelData(customModelData);
-                // Masquer "C418 - 13" => cant (or rather lazy to create a new json just for that)
+                // Hide "C418 - 13" => cant (or rather lazy to create a new json just for that)
                 disc.setItemMeta(meta);
             }
 
-            // Ajouter le disque à l'inventaire du joueur
+            //Add the disc to the player's inventory
             player.getInventory().addItem(disc);
             player.sendMessage(ChatColor.GRAY + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GRAY + " added to your inventory.");
         } catch (IOException e) {
@@ -836,7 +832,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         String customMusicDiscJsonPath = "assets/minecraft/models/item/custom_music_disc_" + discName + ".json";
         String oggFilePath = "assets/minecraft/sounds/custom/" + discName + ".ogg";
         try {
-            // Lire et modifier le fichier JSON des disques
+            // Read and modify the discs JSON file
             if (!discUuidFile.exists()) {
                 player.sendMessage(ChatColor.RED + "No custom music disc found.");
                 return;
@@ -850,15 +846,15 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 return;
             }
 
-            // Récupérer le displayName du disque
+            // Retrieve the disk displayName
             JSONObject discInfo = discData.getJSONObject(discName);
             String displayName = discInfo.getString("displayName");
 
-            // Supprimer l'entrée du disque
+            // Delete the entry from disc
             discData.remove(discName);
             Files.writeString(discUuidFile.toPath(), discData.toString(4));
 
-            // Supprimer l'entrée du son dans sounds.json
+            // Remove the sound entry from sounds.json
             File tempSoundsJson = File.createTempFile("sounds", ".json");
             extractFileFromZip(zipFilePath, "assets/minecraft/sounds.json", tempSoundsJson);
 
@@ -868,7 +864,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             addFileToZip(zipFilePath, tempSoundsJson, "assets/minecraft/sounds.json");
             tempSoundsJson.delete();
 
-            // Supprimer l'override dans music_disc_13.json
+            // Remove override in music_disc_13.json
             File tempModelJson = File.createTempFile("music_disc_13", ".json");
             extractFileFromZip(zipFilePath, "assets/minecraft/models/item/music_disc_13.json", tempModelJson);
 
@@ -886,10 +882,10 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             addFileToZip(zipFilePath, tempModelJson, "assets/minecraft/models/item/music_disc_13.json");
             tempModelJson.delete();
 
-            // Supprimer le fichier JSON du disque
+            // Delete the JSON file from disc
             deleteFileFromZip(zipFilePath, customMusicDiscJsonPath);
 
-            // Supprimer le fichier .ogg associé (optionnel, à décommenter si nécessaire)
+            // Delete the associated .ogg file
             deleteFileFromZip(zipFilePath, oggFilePath);
 
             player.sendMessage(ChatColor.GRAY + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GRAY + " deleted.");

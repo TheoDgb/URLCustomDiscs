@@ -1,20 +1,26 @@
 name: URLCustomDiscs
 main: com.urlcustomdiscs.URLCustomDiscs
-version: 2.2.0
+version: 2.3.0
 api-version: 1.21
 author: Asson
 commands:
   customdisc:
-    description: "Create and play custom music discs from YouTube URLs"
+    description: "Create and play custom music discs from YouTube URLs or local MP3 files with real-time updates for players."
     usage: |
+      First, configure your Minecraft server by properly reading the comments in the config.yml file in the URLCustomDiscs plugin folder.
+      
       Display the list of commands:
       /customdisc help
       
       Create a custom music disc from a YouTube URL or local MP3 file:
+      /customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>
       - mono: enables spatial audio (as when played in a jukebox)
       - stereo: plays the audio in the traditional way
-      /customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>
-      
+      Instructions for local MP3 files (admin-only):
+      - Place your MP3 file inside the audio_to_send folder in the plugin directory before running the create command with the audio_name.mp3.
+      - Rename the MP3 file to a simple name with no spaces and no special characters.
+      - Don't forget to include the .mp3 extension in the audio_name.mp3 field.
+  
       Give yourself a custom music disc:
       /customdisc give <disc_name>
       

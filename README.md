@@ -1,4 +1,4 @@
-## 1.21.0-1 URLCustomDiscs plugin (+ server resource pack)
+## 1.21-1.21.8 URLCustomDiscs plugin (+ server resource pack)
 Last updated on July 4, 2025.
 
 <img src="https://github.com/TheoDgb/URLCustomDiscs/blob/main/media/URLCustomDiscs_icon.png?raw=true" alt="URLCustomDiscs Icon" style="width: 10%;">
@@ -13,9 +13,6 @@ The plugin supports Minecraft's spatial audio for music, but you can also play i
 Additionally, vanilla commands such as `/playsound` and `/stopsound` work with the custom music, so you do not need to use a disc in a jukebox.
 
 **Important**: Make sure to use a direct video URL without any parameters (such as playlist, timecode, etc.), or you might get an unexpected result. Delete everything from the "&" in the URL.
-
-**Note**: Plugin tested on 1.21.0-1 Spigot, Paper and Arclight servers  
--- Partially works in 1.21.4+: discs can be created, deleted, and played using vanilla commands, but don't play as intended in a jukebox.
 
 ## Usage
 <table>
@@ -41,13 +38,13 @@ Additionally, vanilla commands such as `/playsound` and `/stopsound` work with t
 </table>
 
 ## Audio Download Options
-### **Warning**: ***YouTube blocked my API server***. This issue can be resolved by using a residential proxy, but it's costly for me. Thank you for your understanding.
+### **Warning**: ***YouTube may sometimes block my API server***. This issue can be resolved by using a residential proxy, but it's costly for me. Thank you for your understanding.
 In the meantime, you have **two alternative options**:
 - **Use the built-in **yt-dlp** dependency (Minecraft server-side download)**  
   You can use the included **yt-dlp** dependency in the plugin. It will download the audio from the YouTube URL into the plugin folder and then send it to the API.
-  > This method is **unlikely to work on shared Minecraft hosting providers**, such as Shockbyte, as they often do **not allow execution** of yt-dlp, or the IP ranges of those servers are likely **already banned by YouTube** (just like my API is at the moment).
+  > This method is **unlikely to work on shared Minecraft hosting providers**, such as Shockbyte, as they often do **not allow execution** of yt-dlp, or the IP ranges of those servers are likely **already banned by YouTube** (as my API can be at times).
 - **Manually download the MP3 file (admin-only, 100% reliable)**  
-  If you don't mind downloading the audio as an MP3, use a site like [noTube](https://notube.lol/fr/youtube-app-213) to download the MP3 manually. Then, place the file directly into the `audio_to_send` folder inside the `URLCustomDiscs` plugin directory.  
+  If you don't mind downloading the audio as an MP3, use a website like [noTube](https://notube.lol/fr/youtube-app-213) to download the MP3 manually. Then, place the file directly into the `audio_to_send` folder inside the `URLCustomDiscs` plugin directory.  
   Use the appropriate command to create a disc with that MP3.
   > This method only works for Minecraft server admins, as it requires access to the server’s file system.
 
@@ -59,7 +56,7 @@ Create a custom music disc from a YouTube URL or local MP3 file:
 `/customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>`
 - mono: enables spatial audio (as when played in a jukebox)
 - stereo: plays the audio in the traditional way
-> **Instructions for local MP3 files**:  
+> **Instructions for local MP3 files (admin-only)**:  
 > - Place your MP3 file inside the `audio_to_send` folder in the plugin directory before running the create command with the `audio_name.mp3`.  
 > - Rename the MP3 file to a simple name with no spaces and no special characters.
 > - Don't forget to include the `.mp3` extension in the `audio_name.mp3` field.
@@ -142,9 +139,9 @@ This plugin requires a brief setup to ensure players automatically download the 
    `resource-pack=https://your-generated-downloadPackURL.zip`
 7. Restart your Minecraft server to apply the resource pack settings.
 8. (Optional) To force players to download the resource pack, set `require-resource-pack=true` in `server.properties` and restart your Minecraft server.
-9. Due to the current issue with the API server being blocked by YouTube, if you **don’t want to manually download MP3 files** and would prefer to keep using **YouTube URLs**, you can configure the plugin to use the **included yt-dlp** dependency directly on your Minecraft server.  
+9. Due to a potential issue with the API server being blocked by YouTube, if you **don’t want to manually download MP3 files** and would prefer to keep using **YouTube URLs**, you can configure the plugin to use the **included yt-dlp** dependency directly on your Minecraft server.  
    To do this, set the following field in the `config.yml` file: `localYtDlp: true`, then restart your Minecraft server.
-   > This option likely won’t work on most **shared Minecraft hosting providers** (like Shockbyte). For more details, refer to the [Audio Download Options](#audio-download-options)
+   > This option likely won’t work on most **shared Minecraft hosting providers** (such as Shockbyte). For more details, refer to the [Audio Download Options](#audio-download-options)
    section.
 
 **Note**: All these steps are also explained in detail in the `config.yml` file created when you first launch the plugin.
@@ -165,7 +162,7 @@ your_mc_server_folder/
 └── other Minecraft server folders and files... (
 ```
 
-URLCustomDiscsPack.zip server resource pack:
+1.21 URLCustomDiscsPack.zip server resource pack:
 ```
 URLCustomDiscsPack.zip/
 ├── assets/
@@ -173,6 +170,25 @@ URLCustomDiscsPack.zip/
 │       ├── models/
 │       │   └── item/
 │       │       ├── music_disc_13.json             ("overrides" added on disc 13 to assign custom music disc models using custom_model_data)
+│       │       └── custom_music_disc_example.json (custom music disc models automatically created) 
+│       ├── sounds/
+│       │   └── custom/                            (custom music disc tracks are saved there)
+│       ├── textures/
+│       │   └── item/
+│       │       └── record_custom.png              (custom music discs texture)
+│       └── sounds.json                            (tracks automatically associated with custom music discs)
+└── pack.mcmeta
+```
+
+1.21.4+ URLCustomDiscsPack.zip server resource pack:
+```
+URLCustomDiscsPack.zip/
+├── assets/
+│   └── minecraft/
+│       ├── items/
+│       │   └── music_disc_13.json                 ("entries" added on disc 13 to assign custom music disc models using custom_model_data)
+│       ├── models/
+│       │   └── item/
 │       │       └── custom_music_disc_example.json (custom music disc models automatically created) 
 │       ├── sounds/
 │       │   └── custom/                            (custom music disc tracks are saved there)

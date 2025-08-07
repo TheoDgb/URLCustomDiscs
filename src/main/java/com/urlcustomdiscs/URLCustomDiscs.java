@@ -11,8 +11,8 @@ import java.nio.file.Files;
 import java.util.Objects;
 
 public class URLCustomDiscs extends JavaPlugin {
+    private String minecraftServerVersion;
     private File discUuidFile;
-    private File audioToSendFolder;
     private File editResourcePackFolder;
     private String pluginUsageMode;
     private String apiBaseURL;
@@ -24,7 +24,6 @@ public class URLCustomDiscs extends JavaPlugin {
     private String zipFilePath;
     private String uploadResourcePackURL;
     private final String os = System.getProperty("os.name").toLowerCase();
-    private RemoteApiClient  remoteApiClient;
     private ResourcePackManager resourcePackManager;
 
     @Override
@@ -32,14 +31,24 @@ public class URLCustomDiscs extends JavaPlugin {
         getLogger().info("URLCustomDiscs enabled !");
         getLogger().info("Running on OS: " + getOperatingSystem());
 
-        loadFiles(); // Charger ou créer les dossiers
-        loadConfig(); // Charger ou créer le fichier de configuration
+        String fullVersion = getServer().getBukkitVersion(); // "1.21.4-R0.1-SNAPSHOT"
+        minecraftServerVersion = fullVersion.split("-")[0];  // "1.21.4"
+        getLogger().info("Detected Minecraft server version: " + minecraftServerVersion);
+
+        if (minecraftServerVersion == null) {
+            minecraftServerVersion = "1.21.4";
+            getLogger().warning("Failed to parse Minecraft version from Bukkit version. Defaulting to: " + minecraftServerVersion);
+            getLogger().warning("If your Minecraft server is under this version, your API-managed resource pack will not be compatible with your version.");
+        }
+
+        loadConfig(); // Load or create the configuration file
+        loadFiles(); // Load or create folders
 
         if (localYtDlp) {
             new YtDlpSetup(this).setup();
         }
 
-        remoteApiClient = new RemoteApiClient(this, getApiBaseURL());
+        RemoteApiClient remoteApiClient = new RemoteApiClient(this, getApiBaseURL());
         resourcePackManager = new ResourcePackManager(discUuidFile, editResourcePackFolder, downloadResourcePackURL, uploadResourcePackURL); // Initialiser l'instance de ResourcePackManager
 
         Objects.requireNonNull(this.getCommand("customdisc")).setExecutor(new CommandURLCustomDiscs(this, remoteApiClient));
@@ -49,7 +58,7 @@ public class URLCustomDiscs extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        getLogger().info("URLCustomDiscs disabled !");
+        getLogger().info("URLCustomDiscs disabled!");
     }
 
     private void loadConfig() {
@@ -89,7 +98,7 @@ public class URLCustomDiscs extends JavaPlugin {
                                 "\n" +
                                 "# If set to true, uses the yt-dlp tool included in the plugin to download audio directly from YouTube on your Minecraft server.\n" +
                                 "# This allows you to continue using YouTube URLs even if the remote API is blocked by YouTube or other websites like soundcloud.\n" +
-                                "# Not recommended for shared Minecraft hosting providers (like Shockbyte), as they usually block yt-dlp execution or are already IP-banned.\n" +
+                                "# Not recommended for shared Minecraft hosting providers (such as Shockbyte), as they usually block yt-dlp execution or are already IP-banned.\n" +
                                 "# You must restart your server after changing this option for it to take effect.\n" +
                                 "localYtDlp: false\n" +
                                 "\n" + "\n" +
@@ -167,21 +176,28 @@ public class URLCustomDiscs extends JavaPlugin {
             }
         }
 
-        audioToSendFolder = new File(getDataFolder(), "audio_to_send");
-        if (!audioToSendFolder.exists()) {
-            audioToSendFolder.mkdir();
-        }
+        if ("api".equalsIgnoreCase(pluginUsageMode)) {
+            File audioToSendFolder = new File(getDataFolder(), "audio_to_send");
+            if (!audioToSendFolder.exists()) {
+                audioToSendFolder.mkdir();
+            }
+        } else if ("self-hosted".equalsIgnoreCase(pluginUsageMode)) {
+            editResourcePackFolder = new File(getDataFolder(), "editResourcePack");
+            if (!editResourcePackFolder.exists()) {
+                editResourcePackFolder.mkdirs();
+            }
 
-        editResourcePackFolder = new File(getDataFolder(), "editResourcePack"); // Assign to class variable
-        if (!editResourcePackFolder.exists()) {
-            editResourcePackFolder.mkdirs();
+            File musicFolder = new File(getDataFolder(), "music");
+            if (!musicFolder.exists()) {
+                musicFolder.mkdirs();
+            }
+        } else {
+            getLogger().warning("Unknown pluginUsageMode: " + pluginUsageMode);
         }
-
-        File musicFolder = new File(getDataFolder(), "music");
-        if (!musicFolder.exists()) musicFolder.mkdirs();
     }
 
     // Getters / Setters
+    public String getMinecraftServerVersion() { return minecraftServerVersion; }
     public String getPluginUsageMode() { return pluginUsageMode; }
     public String getApiBaseURL() { return apiBaseURL; }
     public String getToken() { return this.token != null ? this.token : ""; }

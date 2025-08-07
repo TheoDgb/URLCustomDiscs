@@ -22,7 +22,7 @@ public class DiscFactory {
 
         if (meta != null) {
             meta.setDisplayName(ChatColor.GOLD + displayName);
-            meta.setLore(List.of(ChatColor.GRAY + "Custom music disc: " + displayName));
+            meta.setLore(List.of(ChatColor.GRAY + "Custom disc: " + displayName));
             meta.setCustomModelData(customModelData);
             disc.setItemMeta(meta);
         }

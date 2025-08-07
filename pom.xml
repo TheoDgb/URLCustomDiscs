@@ -9,10 +9,10 @@
     <packaging>jar</packaging>
 
     <name>URLCustomDiscs</name>
-    <description>Minecraft plugin to create and play custom music discs from YouTube URLs</description>
+    <description>Minecraft plugin to create and play custom music discs from YouTube URLs or local MP3 files with real-time updates for players.</description>
 
     <repositories>
-        <!-- Dépôt Spigot pour accéder à l'API Spigot -->
+        <!-- Spigot repository to access the Spigot API -->
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
@@ -20,7 +20,7 @@
     </repositories>
 
     <dependencies>
-        <!-- Dépendance pour l'API Spigot (version 1.21-R0.1-SNAPSHOT) -->
+        <!-- Dependency for Spigot API (1.21-R0.1-SNAPSHOT version) -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
@@ -46,7 +46,7 @@
     </dependencies>
 
     <build>
-        <finalName>URLCustomDiscs-2.2.0-1.21.0-1.21.1</finalName>
+        <finalName>URLCustomDiscs-2.3.0-1.21-1.21.8</finalName>
 
         <plugins>
             <plugin>
@@ -66,7 +66,7 @@
                 <executions>
                     <execution>
                         <id>default-jar</id>
-                        <phase>none</phase> <!-- Désactive la création du JAR normal -->
+                        <phase>none</phase> <!-- Disable normal JAR creation -->
                     </execution>
                 </executions>
             </plugin>
