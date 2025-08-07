@@ -123,8 +123,10 @@ yt-dlp and FFmpeg are not included in this project and must be installed separat
 - **FFmpeg**: converts MP3 files to Ogg Vorbis format for Minecraft compatibility.
 
 ## Download
-The **URLCustomDiscs.jar** plugin and the **URLCustomDiscsPack.zip** server resource pack are available for download in the [Releases](https://github.com/TheoDgb/URLCustomDiscs/releases) section. <br>
+The **URLCustomDiscs.jar** plugin and the **URLCustomDiscsPack_1.21.zip** server resource pack are available for download in the [Releases](https://github.com/TheoDgb/URLCustomDiscs/releases) section.
 They are also available on [Modrinth](https://modrinth.com/plugin/url-custom-discs) ([**Versions**](https://modrinth.com/plugin/url-custom-discs/versions)).
+
+After downloading, **rename the resource pack to** `URLCustomDiscsPack.zip`.
 
 ## Servers Guide
 **Important**:
