@@ -1,5 +1,5 @@
 ## 1.21.0-1 URLCustomDiscs plugin (+ server resource pack)
-Last updated on July 4, 2025.
+Last updated on August 7, 2025.
 
 <img src="https://github.com/TheoDgb/URLCustomDiscs/blob/main/media/URLCustomDiscs_icon.png?raw=true" alt="URLCustomDiscs Icon" style="width: 10%;">
 
