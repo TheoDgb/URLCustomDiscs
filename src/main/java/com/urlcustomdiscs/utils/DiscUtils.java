@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import static org.bukkit.Bukkit.getLogger;
 
 public class DiscUtils {
-    // Charger les données du fichier discs.json
+    // Load data from the discs.json file
     public static JSONObject loadDiscData(File discUuidFile) {
         try {
             if (discUuidFile.exists()) {
@@ -17,13 +17,13 @@ public class DiscUtils {
                 return new JSONObject(content);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            getLogger().severe("Exception: " + e.getMessage());
             getLogger().severe("Failed to load disc data: " + discUuidFile);
         }
-        return new JSONObject(); // Retourne un objet vide en cas d'erreur
+        return new JSONObject(); // Returns an empty object on error
     }
 
-    // Trouver le nom du disque à partir du CustomModelData
+    // Find the disc name from the CustomModelData
     public static String getDiscNameFromCustomModelData(JSONObject discData, int customModelData) {
         for (String key : discData.keySet()) {
             JSONObject disc = discData.getJSONObject(key);
@@ -31,6 +31,6 @@ public class DiscUtils {
                 return key;
             }
         }
-        return null; // Si aucun disque ne correspond, retourne null
+        return null; // If no disc matches, returns null
     }
 }

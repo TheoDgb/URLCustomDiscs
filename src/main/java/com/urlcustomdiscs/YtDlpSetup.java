@@ -1,7 +1,7 @@
 package com.urlcustomdiscs;
 
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -9,68 +9,51 @@ import java.net.URL;
 
 public class YtDlpSetup {
 
-    public enum OS {
-        WINDOWS, LINUX, OTHER
-    }
-
     private final JavaPlugin plugin;
-    private final OS os;
-    private final File binDir;
+    private final URLCustomDiscs.OS os;
     private final File ytDlpFile;
 
-    public YtDlpSetup(JavaPlugin plugin) {
+    public YtDlpSetup(JavaPlugin plugin, URLCustomDiscs.OS os) {
         this.plugin = plugin;
-        this.os = detectOperatingSystem();
-        this.binDir = new File(plugin.getDataFolder(), "bin");
+        this.os = os;
+        File binDir = new File(plugin.getDataFolder(), "bin");
 
-        String ytDlpName = (os == OS.WINDOWS) ? "yt-dlp.exe" : "yt-dlp";
+        String ytDlpName = (os == URLCustomDiscs.OS.WINDOWS) ? "yt-dlp.exe" : "yt-dlp";
         this.ytDlpFile = new File(binDir, ytDlpName);
     }
 
-    private OS detectOperatingSystem() {
-        String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.contains("win")) return OS.WINDOWS;
-        if (osName.contains("nux") || osName.contains("nix")) return OS.LINUX;
-        return OS.OTHER;
-    }
-
     public void setup() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                if (!binDir.exists()) binDir.mkdirs();
+        try {
+            String localVersion = getLocalVersion();
+            String latestVersion = fetchLatestVersion();
 
-                String localVersion = getLocalVersion();
-                String latestVersion = fetchLatestVersion();
+            plugin.getLogger().info("[SETUP] Local yt-dlp version: " + (localVersion == null ? "none" : localVersion));
+            plugin.getLogger().info("[SETUP] Latest yt-dlp version: " + latestVersion);
 
-                plugin.getLogger().info("[SETUP] Local yt-dlp version: " + (localVersion == null ? "none" : localVersion));
-                plugin.getLogger().info("[SETUP] Latest yt-dlp version: " + latestVersion);
+            if (localVersion == null || !localVersion.equals(latestVersion)) {
+                plugin.getLogger().info("[SETUP] Updating yt-dlp...");
+                if (ytDlpFile.exists()) ytDlpFile.delete();
 
-                if (localVersion == null || !localVersion.equals(latestVersion)) {
-                    plugin.getLogger().info("[SETUP] Updating yt-dlp...");
-                    if (ytDlpFile.exists()) ytDlpFile.delete();
+                String downloadUrl = switch (os) {
+                    case WINDOWS -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
+                    case LINUX -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux";
+                    default -> throw new IllegalStateException("Unsupported OS: " + os);
+                };
 
-                    String downloadUrl = switch (os) {
-                        case WINDOWS -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
-                        case LINUX -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux";
-                        default -> throw new IllegalStateException("Unsupported OS: " + os);
-                    };
+                downloadFile(downloadUrl, ytDlpFile);
 
-                    downloadFile(downloadUrl, ytDlpFile);
-
-                    if (!ytDlpFile.setExecutable(true)) {
-                        plugin.getLogger().warning("[SETUP] Could not set yt-dlp as executable (usually fine on Windows).");
-                    }
-
-                    plugin.getLogger().info("[SETUP] yt-dlp updated.");
-                } else {
-                    plugin.getLogger().info("[SETUP] yt-dlp is up-to-date.");
+                if (!ytDlpFile.setExecutable(true)) {
+                    plugin.getLogger().warning("[SETUP] Could not set yt-dlp as executable (usually fine on Windows).");
                 }
 
-            } catch (Exception e) {
-                plugin.getLogger().warning("[SETUP] Failed to setup yt-dlp: " + e.getMessage());
-                e.printStackTrace();
+                plugin.getLogger().info("[SETUP] yt-dlp updated.");
+            } else {
+                plugin.getLogger().info("[SETUP] yt-dlp is up-to-date.");
             }
-        });
+
+        } catch (Exception e) {
+            plugin.getLogger().warning("[SETUP] Failed to setup yt-dlp: " + e.getMessage());
+        }
     }
 
     private String getLocalVersion() {
@@ -91,16 +74,11 @@ public class YtDlpSetup {
     }
 
     private String fetchLatestVersion() throws IOException {
-        URL url = new URL("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestProperty("User-Agent", "JavaPlugin");
-        connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
-        connection.setConnectTimeout(5000);
-        connection.setReadTimeout(5000);
-
-        if (connection.getResponseCode() != 200) {
-            throw new IOException("Failed to fetch latest version, HTTP " + connection.getResponseCode());
-        }
+        // Fetch the latest yt-dlp version from GitHub API
+        HttpURLConnection connection = openHttpConnection(
+                "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest",
+                5000, 5000
+        );
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
             StringBuilder json = new StringBuilder();
@@ -127,23 +105,31 @@ public class YtDlpSetup {
 
     private void downloadFile(String urlString, File destination) throws IOException {
         plugin.getLogger().info("[SETUP] Downloading " + urlString);
-        URL url = new URL(urlString);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setInstanceFollowRedirects(true);
-        connection.setConnectTimeout(10000);
-        connection.setReadTimeout(10000);
 
-        if (connection.getResponseCode() != 200) {
-            throw new IOException("Failed to download file: HTTP " + connection.getResponseCode());
-        }
+        // Fetch the file from the URL
+        HttpURLConnection connection = openHttpConnection(urlString, 10000, 10000);
 
-        try (InputStream in = connection.getInputStream();
-             FileOutputStream out = new FileOutputStream(destination)) {
+        try (InputStream in = connection.getInputStream(); FileOutputStream out = new FileOutputStream(destination)) {
             byte[] buffer = new byte[8192];
             int read;
             while ((read = in.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
             }
         }
+    }
+
+    private static @NotNull HttpURLConnection openHttpConnection(String urlString, int connectTimeout, int readTimeout) throws IOException {
+        URL url = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestProperty("User-Agent", "JavaPlugin");
+        connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
+        connection.setConnectTimeout(connectTimeout);
+        connection.setReadTimeout(readTimeout);
+
+        if (connection.getResponseCode() != 200) {
+            throw new IOException("Failed request to " + urlString + ", HTTP " + connection.getResponseCode());
+        }
+
+        return connection;
     }
 }

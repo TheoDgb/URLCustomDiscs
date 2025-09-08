@@ -1,8 +1,9 @@
 name: URLCustomDiscs
 main: com.urlcustomdiscs.URLCustomDiscs
-version: 2.3.0
+version: 2.6.1
 api-version: 1.21
-author: Asson
+author: Théo DAL GOBBO
+softdepend: [ProtocolLib]
 commands:
   customdisc:
     description: "Create and play custom music discs from YouTube URLs or local MP3 files with real-time updates for players."
@@ -34,10 +35,10 @@ commands:
       /customdisc info
       
       Update the yt-dlp dependency:
-      /customdisc update
+      /customdisc updatedep
       
       Vanilla command to play a custom track (can be used with coordinates):
-      /execute positioned ~ ~ ~ run playsound minecraft:customdisc.<disc_name> ambient @a
+      /playsound minecraft:customdisc.<disc_name> ambient @a ~ ~ ~ 1 1
       
       Vanilla command to stop a custom track:
       /stopsound @a * minecraft:customdisc.<disc_name>

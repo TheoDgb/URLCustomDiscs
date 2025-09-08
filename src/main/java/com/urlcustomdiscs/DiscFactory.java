@@ -14,7 +14,7 @@ public class DiscFactory {
     public static void giveCustomDiscToPlayer(Player player, JSONObject discInfo) {
         if (discInfo == null) return;
 
-        String displayName = discInfo.optString("displayName", "Unknown Disc");
+        String displayName = discInfo.getString("displayName");
         int customModelData = discInfo.optInt("customModelData", 0);
 
         ItemStack disc = new ItemStack(Material.MUSIC_DISC_13);

@@ -1,10 +1,6 @@
 package com.urlcustomdiscs;
 
-import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import com.urlcustomdiscs.utils.MinecraftServerVersionUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -13,79 +9,56 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.UUID;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import static org.bukkit.Bukkit.getLogger;
-
 public class ResourcePackManager {
-    private final File discUuidFile;
-    private final File editResourcePackFolder;
-    private final File resourcePackFile;
-    private final String downloadResourcePackURL;
-    private final String uploadResourcePackURL;
+    private final URLCustomDiscs plugin;
 
-    public ResourcePackManager(File discUuidFile, File editResourcePackFolder, String downloadResourcePackURL, String uploadResourcePackURL) {
-        this.discUuidFile = discUuidFile;
-        this.editResourcePackFolder = editResourcePackFolder;
-        this.resourcePackFile = new File(editResourcePackFolder, "URLCustomDiscsPack.zip");
-        this.downloadResourcePackURL = downloadResourcePackURL;
-        this.uploadResourcePackURL = uploadResourcePackURL;
+    public ResourcePackManager(URLCustomDiscs plugin) {
+        this.plugin = plugin;
     }
 
-    public File getResourcePackFile() {
-        return resourcePackFile;
-    }
+    // Download the resource pack from the URL
+    public File downloadResourcePack(File outputDir, String downloadResourcePackUrl) throws IOException {
+        plugin.getLogger().info("Downloading the resource pack...");
 
-    public boolean downloadResourcePack() {
-        getLogger().info("Downloading resource pack...");
-        if (!editResourcePackFolder.exists()) {
-            editResourcePackFolder.mkdirs();
+        File destinationFile = new File(outputDir, "URLCustomDiscsPack.zip");
+
+        HttpURLConnection connection = (HttpURLConnection) new URL(downloadResourcePackUrl).openConnection();
+        connection.setRequestMethod("GET");
+        connection.connect();
+
+        if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            throw new IOException("Failed to download the resource pack: " + connection.getResponseMessage());
         }
 
-        File destinationFile = new File(editResourcePackFolder, "URLCustomDiscsPack.zip");
-
-        try (BufferedInputStream in = new BufferedInputStream(new URL(downloadResourcePackURL).openStream());
+        try (BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
              FileOutputStream fileOutputStream = new FileOutputStream(destinationFile)) {
-
-            HttpURLConnection connection = (HttpURLConnection) new URL(downloadResourcePackURL).openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-
-            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                getLogger().severe("Failed to download: " + connection.getResponseMessage());
-                return false;
-            }
 
             byte[] dataBuffer = new byte[1024];
             int bytesRead;
             while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
             }
-
-            getLogger().info("Server resource pack downloaded: " + destinationFile.getAbsolutePath());
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
         }
+
+        plugin.getLogger().info("Resource pack downloaded: " + destinationFile.getAbsolutePath());
+        return destinationFile;
     }
 
-    public boolean uploadResourcePack() {
-        if (!resourcePackFile.exists()) {
-            getLogger().severe("Server resource pack file not found.");
-            return false;
-        }
+    // Upload the resource pack to the HTTP server
+    public boolean uploadResourcePack(File resourcePackFile, String uploadResourcePackURL) {
+        plugin.getLogger().info("Uploading the resource pack...");
 
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(uploadResourcePackURL).openConnection();
             connection.setDoOutput(true);
             connection.setRequestMethod("POST");
+
             String boundary = "----WebKitFormBoundary" + System.currentTimeMillis();
             connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
 
@@ -93,12 +66,14 @@ public class ResourcePackManager {
                  FileInputStream fileInputStream = new FileInputStream(resourcePackFile);
                  PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), true)) {
 
+                // write multipart form data headers
                 writer.append("--").append(boundary).append("\r\n");
                 writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"")
                         .append(resourcePackFile.getName()).append("\"\r\n");
                 writer.append("Content-Type: application/zip\r\n\r\n");
                 writer.flush();
 
+                // Write file content
                 byte[] buffer = new byte[4096];
                 int bytesRead;
                 while ((bytesRead = fileInputStream.read(buffer)) != -1) {
@@ -106,344 +81,333 @@ public class ResourcePackManager {
                 }
                 outputStream.flush();
 
+                // Close boundary
                 writer.append("\r\n--").append(boundary).append("--\r\n");
                 writer.flush();
             }
 
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                getLogger().info("Server resource pack uploaded.");
+                plugin.getLogger().info("Resource pack uploaded successfully.");
+                return true;
+            } else {
+                plugin.getLogger().severe("Error uploading the resource pack: " + connection.getResponseMessage());
+                return false;
+            }
+        } catch (IOException e) {
+            plugin.getLogger().severe("Exception while uploading resource pack: " + e.getMessage());
+            return false;
+        }
+    }
 
-                InputStream responseStream = connection.getInputStream();
-                Scanner s = new Scanner(responseStream).useDelimiter("\\A");
-                String response = s.hasNext() ? s.next() : "";
-                getLogger().warning("Server response: " + response);
-
-                if (resourcePackFile.delete()) {
-                    getLogger().info("Edited server resource pack deleted in plugin file.");
+    // Unzip the resource pack in the temp_unpacked folder
+    public void unzipResourcePack(File zipFile, File outputDir) {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                File newFile = new File(outputDir, entry.getName());
+                if (entry.isDirectory()) {
+                    newFile.mkdirs();
                 } else {
-                    getLogger().severe("Error deleting the edited server resource pack in plugin file.");
+                    newFile.getParentFile().mkdirs();
+                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                        zis.transferTo(fos);
+                    }
                 }
-
-                return true;
-            } else {
-                getLogger().severe("Error uploading the server resource pack: " + connection.getResponseMessage());
-                return false;
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+            throw new RuntimeException(e);
         }
     }
 
+    // Archive the contents of the unpacked folder into a temporary ZIP file, then replace the existing resource pack ZIP with the temporary ZIP file.
+    public void rezipResourcePack(File sourceDir, File targetZip) throws IOException {
+        Path sourcePath = sourceDir.toPath();
 
+        // Create a temporary file in the same directory as the target file
+        File tempZip = new File(targetZip.getParent(), targetZip.getName() + ".tmp");
 
-    public boolean createCustomMusicDisc(Player player, String discName, String displayName) {
+        // Write to the temporary file
+        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tempZip))) {
+            Files.walk(sourcePath).forEach(path -> {
+                File file = path.toFile();
+                String entryName = sourcePath.relativize(path).toString().replace("\\", "/");
+                if (file.isDirectory()) { // Add directories recursively
+                    if (!entryName.isEmpty()) {
+                        try {
+                            zos.putNextEntry(new ZipEntry(entryName + "/"));
+                            zos.closeEntry();
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    }
+                } else { // Add files
+                    // Copy the file content into the zip file
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        zos.putNextEntry(new ZipEntry(entryName));
+                        fis.transferTo(zos);
+                        zos.closeEntry();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }
+            });
+        }
+
+        // Replace the old file with the new one
         try {
-            JSONObject discData = discUuidFile.exists()
-                    ? new JSONObject(Files.readString(discUuidFile.toPath()))
-                    : new JSONObject();
-
-            JSONObject discInfo;
-            if (discData.has(discName)) {
-                discInfo = discData.getJSONObject(discName);
-            } else {
-                String newUUID = UUID.randomUUID().toString();
-                discInfo = new JSONObject();
-                discInfo.put("uuid", newUUID);
-                // Calculer le customModelData à partir de l'UUID
-                // Supprime les tirets de l'UUID, Prend les 8 premiers caractères hexadécimaux, Convertit cette partie de l'UUID en un nombre long, Garde un nombre positif dans la limite de int
-                int customModelData = (int) (Long.parseLong(newUUID.replace("-", "").substring(0, 8), 16) & 0x7FFFFFFF);
-                discInfo.put("customModelData", customModelData);
-                discInfo.put("displayName", displayName);
-                discData.put(discName, discInfo); // Enregistrer les nouvelles informations dans le fichier JSON
-                Files.writeString(discUuidFile.toPath(), discData.toString(4));
+            // Delete the old file
+            if (targetZip.exists() && !targetZip.delete()) {
+                throw new IOException("Unable to delete the old ZIP file: " + targetZip.getAbsolutePath());
             }
 
-            // Créer le disque
-            ItemStack disc = new ItemStack(Material.MUSIC_DISC_13);
-            ItemMeta meta = disc.getItemMeta();
-
-            if (meta != null) {
-                meta.setDisplayName(ChatColor.GOLD + displayName); // Définir le nom du disque
-                // Ajouter une description personnalisée
-                List<String> lore = new ArrayList<>();
-                lore.add(ChatColor.GRAY + "Custom music disc: " + displayName);
-                meta.setLore(lore);
-
-                // Utiliser le customModelData calculé
-                meta.setCustomModelData(discInfo.getInt("customModelData"));
-
-                // Masquer "C418 - 13"
-                // cant (or rather lazy to create a new json just for that)
-
-                disc.setItemMeta(meta); // Appliquer les modifications à l'objet ItemStack
-
-                updateSoundsJson(discName);
-                updateDiscModelJson(discName, discInfo.getInt("customModelData"));
-                createCustomMusicDiscJson(discName);
+            // Rename the temporary file
+            if (!tempZip.renameTo(targetZip)) {
+                throw new IOException("Unable to rename the temporary file: " + tempZip.getAbsolutePath() + " to " + targetZip.getAbsolutePath());
             }
 
-            player.getInventory().addItem(disc); // Ajouter le disque à l'inventaire du joueur
-            return true;
         } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+            // Clean up the temporary file if an error occurs
+            if (tempZip.exists()) {
+                tempZip.delete();
+            }
+            throw e;
         }
     }
 
-    public void updateSoundsJson(String discName) {
-        String jsonPathInZip = "assets/minecraft/sounds.json";
-        try {
-            File tempJson = File.createTempFile("sounds", ".json");
-            extractFileFromZip(resourcePackFile, jsonPathInZip, tempJson);
+    // Add the Ogg file in the resource pack
+    public void addOggFileToResourcePack(File oggFile, File unpackedDir, String discName) throws IOException {
+        File target = new File(unpackedDir, "assets/minecraft/sounds/custom/" + discName + ".ogg");
+        Files.copy(oggFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    }
 
-            JSONObject soundsJson = tempJson.exists()
-                    ? new JSONObject(Files.readString(tempJson.toPath()))
-                    : new JSONObject();
+    // Add a custom disc entry to sounds.json
+    public void addDiscEntryToSoundsJson(File unpackedDir, String discName) throws IOException {
+        File soundsJson = new File(unpackedDir, "assets/minecraft/sounds.json");
+        JSONObject sounds = new JSONObject();
 
-            String soundKey = "customdisc." + discName;
-            if (!soundsJson.has(soundKey)) {
-                JSONObject soundData = new JSONObject();
-                soundData.put("sounds", new JSONArray().put(new JSONObject()
-                        .put("name", "custom/" + discName)
-                        .put("stream", true)));
-                soundsJson.put(soundKey, soundData);
-                Files.writeString(tempJson.toPath(), soundsJson.toString(4));
-                addFileToResourcePack(tempJson, jsonPathInZip);
-            }
-            tempJson.delete();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (soundsJson.exists()) {
+            String content = Files.readString(soundsJson.toPath());
+            sounds = new JSONObject(content);
+        }
+
+        String key = "customdisc." + discName;
+
+        if(!sounds.has(key)) {
+            JSONObject soundEntry = new JSONObject();
+            soundEntry.put("category", "record");
+
+            JSONArray soundsArray = new JSONArray();
+            JSONObject soundObj = new JSONObject();
+            soundObj.put("name", "custom/" + discName);
+            soundObj.put("stream", true);
+            soundsArray.put(soundObj);
+
+            soundEntry.put("sounds", soundsArray);
+
+            sounds.put(key, soundEntry);
+            Files.writeString(soundsJson.toPath(), sounds.toString(2));
         }
     }
 
-    private void updateDiscModelJson(String discName, int customModelData) {
-        String modelPathInZip = "assets/minecraft/models/item/music_disc_13.json";
-        try {
-            // Fichier temporaire pour extraire et modifier le JSON
-            File tempJson = File.createTempFile("music_disc_13", ".json");
-            extractFileFromZip(resourcePackFile, modelPathInZip, tempJson); // Extraire music_disc_13.json du ZIP
-            // Lire ou créer le JSON
-            JSONObject modelJson = tempJson.exists()
-                    ? new JSONObject(Files.readString(tempJson.toPath()))
-                    : new JSONObject();
+    // Add a custom disc entry to music_disc_13.json
+    public void addDiscEntryToMusicDisc13ModelJson(File unpackedDir, String discName, int customModelData, String minecraftServerVersion) throws IOException {
 
-            if (!modelJson.has("overrides")) {
-                modelJson.put("overrides", new JSONArray());
+        MinecraftServerVersionUtils version = MinecraftServerVersionUtils.parse(minecraftServerVersion);
+        File modelPath = version.isNewFormat()
+                ? new File(unpackedDir, "assets/minecraft/items/music_disc_13.json")
+                : new File(unpackedDir, "assets/minecraft/models/item/music_disc_13.json");
+
+        JSONObject root;
+        if (modelPath.exists()) {
+            String content = Files.readString(modelPath.toPath());
+            root = new JSONObject(content);
+        } else {
+            root = new JSONObject();
+        }
+
+        if (version.isNewFormat()) { // New format with "entries" (1.21.4+)
+            // Retrieve or create the "model" object
+            JSONObject modelObject = root.optJSONObject("model");
+            if (modelObject == null) {
+                modelObject = new JSONObject();
+                modelObject.put("type", "range_dispatch");
+                modelObject.put("property", "custom_model_data");
+
+                JSONObject fallback = new JSONObject();
+                fallback.put("type", "model");
+                fallback.put("model", "minecraft:item/music_disc_13");
+                modelObject.put("fallback", fallback);
+
+                modelObject.put("entries", new JSONArray());
+                root.put("model", modelObject);
             }
-            JSONArray overrides = modelJson.getJSONArray("overrides");
-            JSONObject newOverride = new JSONObject();
-            newOverride.put("predicate", new JSONObject().put("custom_model_data", customModelData));
-            newOverride.put("model", "item/custom_music_disc_" + discName);
 
-            // Vérifier si l'override existe déjà
-            boolean exists = false;
-            for (int i = 0; i < overrides.length(); i++) {
-                JSONObject obj = overrides.getJSONObject(i);
-                if (obj.getJSONObject("predicate").getInt("custom_model_data") == customModelData) {
-                    exists = true;
+            JSONArray entries = modelObject.getJSONArray("entries");
+
+            // Checks if the customModelData already exists
+            boolean alreadyExists = false;
+            for (int i = 0; i < entries.length(); i++) {
+                JSONObject entry = entries.getJSONObject(i);
+                if (entry.optInt("threshold") == customModelData) {
+                    alreadyExists = true;
                     break;
                 }
             }
 
-            if (!exists) {
+            // Add a new entry if necessary
+            if (!alreadyExists) {
+                JSONObject newEntry = new JSONObject();
+                newEntry.put("threshold", customModelData);
+
+                JSONObject entryModel = new JSONObject();
+                entryModel.put("type", "model");
+                entryModel.put("model", "item/custom_music_disc_" + discName);
+
+                newEntry.put("model", entryModel);
+                entries.put(newEntry);
+            }
+
+        } else { // Old format with "overrides" (1.21)
+            if (!modelPath.exists() || !root.has("parent")) {
+                root.put("parent", "minecraft:item/generated");
+
+                JSONObject textures = new JSONObject();
+                textures.put("layer0", "minecraft:item/music_disc_13");
+                root.put("textures", textures);
+            }
+            JSONArray overrides = root.optJSONArray("overrides");
+            if (overrides == null) {
+                overrides = new JSONArray();
+                root.put("overrides", overrides);
+            }
+
+            boolean alreadyExists = false;
+            for (int i = 0; i < overrides.length(); i++) {
+                JSONObject override = overrides.getJSONObject(i);
+                JSONObject predicate = override.optJSONObject("predicate");
+                if (predicate != null && predicate.optInt("custom_model_data") == customModelData) {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+
+            if (!alreadyExists) {
+                JSONObject newOverride = new JSONObject();
+                JSONObject predicate = new JSONObject();
+                predicate.put("custom_model_data", customModelData);
+
+                newOverride.put("predicate", predicate);
+                newOverride.put("model", "item/custom_music_disc_" + discName);
+
                 overrides.put(newOverride);
-                Files.writeString(tempJson.toPath(), modelJson.toString(4));
-                addFileToResourcePack(tempJson, modelPathInZip);
             }
-            tempJson.delete();
-        } catch (IOException e) {
-            e.printStackTrace();
+        }
+
+        Files.createDirectories(modelPath.toPath().getParent());
+        Files.writeString(modelPath.toPath(), root.toString(2));
+    }
+
+    // Create the JSON model for the custom disc
+    public void createCustomDiscModelJson(File unpackedDir, String discName, String minecraftServerVersion) throws IOException {
+
+        MinecraftServerVersionUtils version = MinecraftServerVersionUtils.parse(minecraftServerVersion);
+
+        File modelPath = new File(unpackedDir, "assets/minecraft/models/item/custom_music_disc_" + discName + ".json");
+
+        JSONObject model = new JSONObject();
+        model.put("parent", "minecraft:item/generated");
+
+        JSONObject textures = new JSONObject();
+        textures.put("layer0", version.isNewFormat()
+                ? "item/record_custom"
+                : "minecraft:item/record_custom");
+
+        model.put("textures", textures);
+
+        modelPath.getParentFile().mkdirs();
+        Files.writeString(modelPath.toPath(), model.toString(2));
+    }
+
+    // Remove Ogg file from the resource pack
+    public void removeOggFileFromResourcePack(File unpackedDir, String discName) throws IOException {
+        File oggFilePath = new File(unpackedDir, "assets/minecraft/sounds/custom/" + discName + ".ogg");
+        if (oggFilePath.exists()) oggFilePath.delete();
+    }
+
+    // Remove a custom disc entry from sounds.json
+    public void removeDiscEntryFromSoundsJson(File unpackedDir, String discName) throws IOException {
+        File soundsJson = new File(unpackedDir, "assets/minecraft/sounds.json");
+        String key = "customdisc." + discName;
+
+        if (!soundsJson.exists()) return;
+
+        // Read the sounds.json file
+        String content = Files.readString(soundsJson.toPath());
+        JSONObject sounds = new JSONObject(content);
+
+        // Remove the entry if it exists
+        if (sounds.has(key)) {
+            sounds.remove(key);
+
+            Files.writeString(soundsJson.toPath(), sounds.toString(2));
         }
     }
 
-    private void createCustomMusicDiscJson(String discName) {
-        String modelPathInZip = "assets/minecraft/models/item/custom_music_disc_" + discName + ".json";
-        try {
-            // Créer un fichier temporaire JSON
-            File tempJson = File.createTempFile("custom_music_disc_" + discName, ".json");
+    // Remove a custom disc entry to music_disc_13.json
+    public void removeDiscEntryToMusicDisc13ModelJson(File unpackedDir, int customModelData, String minecraftServerVersion) throws IOException {
 
-            // Créer le JSON pour le disque
-            JSONObject discJson = new JSONObject();
-            discJson.put("parent", "minecraft:item/generated");
-            discJson.put("textures", new JSONObject().put("layer0", "minecraft:item/record_custom"));
+        MinecraftServerVersionUtils version = MinecraftServerVersionUtils.parse(minecraftServerVersion);
+        File modelPath = version.isNewFormat()
+                ? new File(unpackedDir, "assets/minecraft/items/music_disc_13.json")
+                : new File(unpackedDir, "assets/minecraft/models/item/music_disc_13.json");
 
-            Files.writeString(tempJson.toPath(), discJson.toString(4)); // Écrire le fichier JSON temporaire
-            addFileToResourcePack(tempJson, modelPathInZip); // Ajouter le JSON dans le ZIP
-            tempJson.delete(); // Nettoyage
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+        if (!modelPath.exists()) return;
 
+        String content = Files.readString(modelPath.toPath());
+        JSONObject root = new JSONObject(content);
 
-
-    private void extractFileFromZip(File zipFile, String filePath, File outputFile) throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
-             FileOutputStream fos = new FileOutputStream(outputFile)) {
-            ZipEntry entry;
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((entry = zis.getNextEntry()) != null) {
-                if (entry.getName().equals(filePath)) {
-                    while ((length = zis.read(buffer)) > 0) {
-                        fos.write(buffer, 0, length);
+        // Remove the entry if it exists
+        if (version.isNewFormat()) {
+            // The entries are in "model.entries"
+            JSONObject modelObject = root.optJSONObject("model");
+            if (modelObject != null) {
+                JSONArray entries = modelObject.optJSONArray("entries");
+                if (entries != null) {
+                    for (int i = 0; i < entries.length(); i++) {
+                        JSONObject entry = entries.getJSONObject(i);
+                        if (entry.optInt("threshold") == customModelData) {
+                            entries.remove(i); // Remove the matching entry
+                            break;
+                        }
                     }
-                    return;
                 }
             }
-        }
-    }
-
-    public boolean addFileToResourcePack(File fileToAdd, String entryPath) {
-        File tempZipFile = new File(resourcePackFile.getAbsolutePath() + ".tmp");
-        try (
-                FileInputStream fis = new FileInputStream(fileToAdd);
-                ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tempZipFile));
-                ZipInputStream zis = new ZipInputStream(new FileInputStream(resourcePackFile))
-        ) {
-            ZipEntry entry;
-            byte[] buffer = new byte[1024];
-            int length;
-
-            // Copier tous les fichiers existants du ZIP
-            while ((entry = zis.getNextEntry()) != null) {
-                if (!entry.getName().equals(entryPath)) { // Ne pas dupliquer si déjà présent
-                    zos.putNextEntry(new ZipEntry(entry.getName()));
-                    while ((length = zis.read(buffer)) > 0) {
-                        zos.write(buffer, 0, length);
-                    }
-                    zos.closeEntry();
-                }
-                zis.closeEntry();
-            }
-
-            // Ajouter le nouveau fichier
-            zos.putNextEntry(new ZipEntry(entryPath));
-            while ((length = fis.read(buffer)) > 0) {
-                zos.write(buffer, 0, length);
-            }
-            zos.closeEntry();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        // Replace the old server resource pack by the new one
-        if (resourcePackFile.delete() && tempZipFile.renameTo(resourcePackFile)) {
-            getLogger().info("Server resource pack updated.");
         } else {
-            getLogger().severe("Error replacing the server resource pack.");
-            return false;
-        }
-
-        return true;
-    }
-
-
-
-    public boolean deleteCustomDiscFromResourcePack(Player player, String discName) {
-        String soundKey = "customdisc." + discName;
-        String customMusicDiscJsonPath = "assets/minecraft/models/item/custom_music_disc_" + discName + ".json";
-        String oggFilePath = "assets/minecraft/sounds/custom/" + discName + ".ogg";
-        String modelJsonPath = "assets/minecraft/models/item/music_disc_13.json";
-
-        try {
-            if (!discUuidFile.exists()) {
-                player.sendMessage(ChatColor.RED + "No custom music disc found.");
-            }
-
-            JSONObject discData = new JSONObject(Files.readString(discUuidFile.toPath()));
-            if (!discData.has(discName)) {
-                player.sendMessage(ChatColor.RED + "The disc '" + discName + "' doesn't exist.");
-            }
-
-            // Récupération du nom du disque pour affichage
-            JSONObject discInfo = discData.getJSONObject(discName);
-            String displayName = discInfo.getString("displayName");
-
-            // Suppression de l'entrée du disque
-            discData.remove(discName);
-            Files.writeString(discUuidFile.toPath(), discData.toString(4));
-
-            // Suppression de l'entrée dans sounds.json
-            File tempSoundsJson = File.createTempFile("sounds", ".json");
-            extractFileFromZip(resourcePackFile, "assets/minecraft/sounds.json", tempSoundsJson);
-            JSONObject soundsJson = new JSONObject(Files.readString(tempSoundsJson.toPath()));
-            soundsJson.remove(soundKey);
-            Files.writeString(tempSoundsJson.toPath(), soundsJson.toString(4));
-            addFileToResourcePack(tempSoundsJson, "assets/minecraft/sounds.json");
-            tempSoundsJson.delete();
-
-            // Suppression du modèle dans music_disc_13.json
-            File tempModelJson = File.createTempFile("music_disc_13", ".json");
-            extractFileFromZip(resourcePackFile, modelJsonPath, tempModelJson);
-            JSONObject modelJson = new JSONObject(Files.readString(tempModelJson.toPath()));
-            JSONArray overrides = modelJson.getJSONArray("overrides");
-
-            for (int i = 0; i < overrides.length(); i++) {
-                if (overrides.getJSONObject(i).getString("model").equals("item/custom_music_disc_" + discName)) {
-                    overrides.remove(i);
-                    break;
-                }
-            }
-
-            Files.writeString(tempModelJson.toPath(), modelJson.toString(4));
-            addFileToResourcePack(tempModelJson, modelJsonPath);
-            tempModelJson.delete();
-
-            // Suppression des fichiers JSON et OGG
-            if (deleteFileFromResourcePack(customMusicDiscJsonPath) && deleteFileFromResourcePack(oggFilePath)) {
-                player.sendMessage(ChatColor.GRAY + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GRAY + " deleted.");
-            } else {
-                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error deleting the custom disc " + ChatColor.GOLD + displayName + ChatColor.GRAY + ".");
-                return false;
-            }
-
-            // Upload the server resource pack
-            if (uploadResourcePack()) {
-                player.sendMessage(ChatColor.GRAY + "Server resource pack uploaded.");
-                return true;
-            } else {
-                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error updating the server resource pack after deletion.");
-                return false;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private boolean deleteFileFromResourcePack(String filePath) {
-        File tempZipFile = new File(resourcePackFile.getAbsolutePath() + ".tmp");
-        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(tempZipFile));
-             ZipInputStream zis = new ZipInputStream(new FileInputStream(resourcePackFile))) {
-
-            ZipEntry entry;
-            byte[] buffer = new byte[1024];
-            int length;
-
-            while ((entry = zis.getNextEntry()) != null) {
-                if (!entry.getName().equals(filePath)) {
-                    zos.putNextEntry(new ZipEntry(entry.getName()));
-                    while ((length = zis.read(buffer)) > 0) {
-                        zos.write(buffer, 0, length);
+            JSONArray overrides = root.optJSONArray("overrides");
+            if (overrides != null) {
+                for (int i = 0; i < overrides.length(); i++) {
+                    JSONObject override = overrides.getJSONObject(i);
+                    JSONObject predicate = override.optJSONObject("predicate");
+                    if (predicate != null && predicate.optInt("custom_model_data") == customModelData) {
+                        overrides.remove(i); // Remove the matching override
+                        break;
                     }
-                    zos.closeEntry();
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
         }
 
-        if (resourcePackFile.delete() && tempZipFile.renameTo(resourcePackFile)) {
-            getLogger().info("Deleted " + filePath + " from resource pack.");
-            return true;
-        } else {
-            getLogger().severe("Error removing " + filePath + " from resource pack.");
-            return false;
+        Files.writeString(modelPath.toPath(), root.toString(2));
+    }
+
+    // Delete the JSON model from the custom disc
+    public void deleteCustomDiscModelJson(File unpackedDir, String discName) throws IOException {
+        File modelPath = new File(unpackedDir, "assets/minecraft/models/item/custom_music_disc_" + discName + ".json");
+
+        if (modelPath.exists()) {
+            if (!modelPath.delete()) {
+                throw new IOException("Failed to delete the custom disc model JSON: " + modelPath.getAbsolutePath());
+            }
         }
     }
 }

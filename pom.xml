@@ -20,35 +20,60 @@
     </repositories>
 
     <dependencies>
-        <!-- Dependency for Spigot API (1.21-R0.1-SNAPSHOT version) -->
+        <!-- Spigot API -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
             <version>1.21-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <!-- JSON -->
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20250107</version>
         </dependency>
+        <!-- BungeeCord Chat -->
         <!-- https://mvnrepository.com/artifact/net.md-5/bungeecord-chat -->
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-chat</artifactId>
             <version>1.20-R0.2</version>
         </dependency>
+        <!-- MP3 Magic -->
         <dependency>
             <groupId>com.mpatric</groupId>
             <artifactId>mp3agic</artifactId>
             <version>0.9.1</version>
         </dependency>
+        <!-- XZ for Java (needed for .xz decompression) -->
+        <dependency>
+            <groupId>org.tukaani</groupId>
+            <artifactId>xz</artifactId>
+            <version>1.9</version>
+        </dependency>
+        <!-- JetBrains annotations -->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>24.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- ProtocolLib to replace the Jukebox "Now Playing: Disc Name" Toast message -->
+        <!-- https://www.spigotmc.org/resources/protocollib.1997/ -->
+        <dependency>
+            <groupId>net.dmulloy2</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>5.4.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
-        <finalName>URLCustomDiscs-2.3.0-1.21-1.21.8</finalName>
+        <finalName>URLCustomDiscs-v2.6.1-1.21-1.21.8</finalName>
 
         <plugins>
+            <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -59,6 +84,7 @@
                 </configuration>
             </plugin>
 
+            <!-- Disable normal JAR creation -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -66,7 +92,7 @@
                 <executions>
                     <execution>
                         <id>default-jar</id>
-                        <phase>none</phase> <!-- Disable normal JAR creation -->
+                        <phase>none</phase>
                     </execution>
                 </executions>
             </plugin>

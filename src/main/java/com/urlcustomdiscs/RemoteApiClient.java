@@ -45,21 +45,21 @@ public class RemoteApiClient {
                     try (InputStream responseStream = connection.getInputStream()) {
                         String response = new String(responseStream.readAllBytes(), StandardCharsets.UTF_8);
                         String receivedToken = parseValueFromJson(response, "token");
-                        String receivedDownloadPackURL = parseValueFromJson(response, "downloadPackUrl");
+                        String receivedApiDownloadResourcePackURL = parseValueFromJson(response, "apiDownloadResourcePackURL");
 
                         if (receivedToken != null && !receivedToken.isEmpty() &&
-                                receivedDownloadPackURL != null && !receivedDownloadPackURL.isEmpty()) {
+                                receivedApiDownloadResourcePackURL != null && !receivedApiDownloadResourcePackURL.isEmpty()) {
                             File configFile = new File(plugin.getDataFolder(), "config.yml");
                             FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                             config.set("token", receivedToken);
-                            config.set("downloadPackURL", receivedDownloadPackURL);
+                            config.set("apiDownloadResourcePackURL", receivedApiDownloadResourcePackURL);
                             config.save(configFile);
 
                             plugin.setToken(receivedToken);
-                            plugin.setDownloadPackURL(receivedDownloadPackURL);
+                            plugin.setApiDownloadResourcePackURL(receivedApiDownloadResourcePackURL);
 
-                            player.sendMessage(ChatColor.GREEN + "Your token has been generated and downloadPackURL is available in the config.yml file of the URLCustomDiscs plugin.");
-                            player.sendMessage(ChatColor.YELLOW + "Don't forget to set the 'resource-pack=' field in your Minecraft server's 'server.properties' file using the downloadPackURL, as explained in the 'config.yml' file of the URLCustomDiscs plugin.");
+                            player.sendMessage(ChatColor.GREEN + "Your token has been generated and apiDownloadResourcePackURL is available in the config.yml file of the URLCustomDiscs plugin.");
+                            player.sendMessage(ChatColor.YELLOW + "Don't forget to set the 'resource-pack=' field in your Minecraft server's 'server.properties' file using the apiDownloadResourcePackURL, as explained in the 'config.yml' file of the URLCustomDiscs plugin.");
                             Bukkit.getScheduler().runTask(plugin, onSuccess);
                         } else {
                             plugin.getLogger().warning("No token received from remote API.");
@@ -71,7 +71,7 @@ public class RemoteApiClient {
 
             } catch (Exception e) {
                 plugin.getLogger().severe("Failed to register with remote API:");
-                e.printStackTrace();
+                plugin.getLogger().severe("Exception: " + e.getMessage());
             }
         });
     }
@@ -81,7 +81,7 @@ public class RemoteApiClient {
             JSONObject jsonObject = new JSONObject(json);
             return jsonObject.getString(key);
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("Exception: " + e.getMessage());
             return null;
         }
     }
@@ -175,7 +175,7 @@ public class RemoteApiClient {
                 );
 
             } catch (Exception e) {
-                e.printStackTrace();
+                plugin.getLogger().severe("Exception: " + e.getMessage());
                 Bukkit.getScheduler().runTask(plugin, () ->
                         player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "An error occurred while sending the request.")
                 );
@@ -208,16 +208,16 @@ public class RemoteApiClient {
                 }
 
                 final String finalResponseBody = responseBody;
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    handleApiResponse(player, responseCode, finalResponseBody, discInfo, discName, "delete");
-                });
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        handleApiResponse(player, responseCode, finalResponseBody, discInfo, discName, "delete")
+                );
 
             } catch (Exception e) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     player.sendMessage(ChatColor.RED + "An error occurred while contacting the remote API.");
                     plugin.getLogger().severe("Exception during remote disc deletion:");
                 });
-                e.printStackTrace();
+                plugin.getLogger().severe("Exception: " + e.getMessage());
             }
         });
     }
@@ -239,7 +239,7 @@ public class RemoteApiClient {
                     // Functional success (the API operation completed successfully)
                     String message = json.optString("message", "Operation completed successfully.");
 
-                    String displayName = discInfo.optString("displayName", "unknown");
+                    String displayName = discInfo.getString("displayName");
 
                     if (mode.equals("create")) {
                         player.sendMessage(ChatColor.GREEN + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GREEN + " created.");
@@ -247,14 +247,13 @@ public class RemoteApiClient {
 
                         // Generate the custom disc in memory and add it to the player's inventory
                         DiscFactory.giveCustomDiscToPlayer(player, discInfo);
-//                        DiscFactory.giveCustomDiscToPlayer(player, discName, discInfo);
 
                         // Browse all online players and send them the resource pack
-                        String downloadPackURL = plugin.getDownloadPackURL();
-                        if (!downloadPackURL.isEmpty()) {
+                        String apiDownloadResourcePackURL = plugin.getApiDownloadResourcePackURL();
+                        if (!apiDownloadResourcePackURL.isEmpty()) {
                             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                                 onlinePlayer.sendMessage(ChatColor.GRAY + "A new resource pack will be loaded...");
-                                onlinePlayer.setResourcePack(downloadPackURL);
+                                onlinePlayer.setResourcePack(apiDownloadResourcePackURL);
                             }
                         }
                     } else if (mode.equals("delete")) {
@@ -264,7 +263,7 @@ public class RemoteApiClient {
                         plugin.getLogger().info("[API SUCCESS] " + message);
                     }
                 } else {
-                    // Functional error (e.g. operation failed even if HTTP status is 200)
+                    // Functional error (e.g., operation failed even if HTTP status is 200)
                     String error = json.optString("error", "An unknown error occurred.");
                     player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "API error: " + error);
                     plugin.getLogger().warning("[API ERROR] " + error);
@@ -302,13 +301,13 @@ public class RemoteApiClient {
                 File configFile = new File(plugin.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("token", "");
-                config.set("downloadPackURL", "");
+                config.set("apiDownloadResourcePackURL", "");
                 config.save(configFile);
 
                 plugin.setToken("");
-                plugin.setDownloadPackURL("");
+                plugin.setApiDownloadResourcePackURL("");
             } catch (IOException ex) {
-                plugin.getLogger().warning("Failed to reset token and/or downloadPackURL in config.yml: " + ex.getMessage() + " You must clear these values manually in the config.yml file, then restart your Minecraft server.");
+                plugin.getLogger().warning("Failed to reset token and/or apiDownloadResourcePackURL in config.yml: " + ex.getMessage() + " You must clear these values manually in the config.yml file, then restart your Minecraft server.");
             }
 
             // Delete discs.json
