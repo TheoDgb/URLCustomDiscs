@@ -1,5 +1,5 @@
 ## 1.21-1.21.8 URLCustomDiscs plugin (+ server resource pack)
-Last updated on September 8, 2025.
+Last updated on October 11, 2025.
 
 ![Modrinth Downloads Badge](https://img.shields.io/modrinth/dt/9dkRl54Z?style=for-the-badge&logo=modrinth&color=%2300AF5C&link=https%3A%2F%2Fmodrinth.com%2Fplugin%2Furl-custom-discs) ![Github Downloads Badge](https://img.shields.io/github/downloads/TheoDgb/URLCustomDiscs/total?label=Downloads&style=for-the-badge&logo=github&color=blue&link=https://github.com/TheoDgb/URLCustomDiscs)
 
@@ -14,7 +14,7 @@ The plugin supports Minecraft's spatial audio for music, but you can also play i
 
 Additionally, vanilla commands such as `/playsound` and `/stopsound` work with the custom music, so you do not need to use a disc in a jukebox.
 
-**Important**: Make sure to use a direct URL without any parameters (such as playlist, timecode, etc.), or you might get an unexpected result.
+**Important**: For non-YouTube URLs, make sure to use a direct URL without any parameters (such as playlist, timecode, etc.), or you might get an unexpected result.
 
 **Note**: Plugin tested on 1.21-1.21.8 Paper and Arclight servers and currently works on Windows and Linux due to dependencies.
 
@@ -40,17 +40,6 @@ Additionally, vanilla commands such as `/playsound` and `/stopsound` work with t
     </tr>
   </tbody>
 </table>
-
-## Audio Download Options
-### **Warning**: ***YouTube may sometimes block my API server***. This issue can be resolved by using a residential proxy, but it's costly for me. Thank you for your understanding.
-In the meantime, you have **two alternative options**:
-- **Use the auto-installed **yt-dlp** dependency (Minecraft server-side download)**  
-  The plugin uses the **yt-dlp** dependency to download the audio from the YouTube URL into the plugin folder and then send it to the API.
-  > This method is **unlikely to work on shared Minecraft hosting providers**, such as Shockbyte, as they often do **not allow execution** of yt-dlp, or the IP ranges of those servers are likely **already banned by YouTube** (as my API can be at times).
-- **Manually download the MP3 file (admin-only, 100% reliable)**  
-  If you don't mind downloading the audio as an MP3 file, use a website like [noTube](https://notube.lol/fr/youtube-app-213) to download it manually. Then, place the MP3 file directly into the `audio_to_send` folder inside the `URLCustomDiscs` plugin directory.  
-  After that, use the appropriate command to create a custom disc with this MP3 file.
-  > This method only works for Minecraft server admins, as it requires access to the server’s file system.
 
 ## Commands Overview
 Display the list of commands:  
@@ -138,13 +127,12 @@ The `ProtocolLib.jar` plugin is available for download on the [official Protocol
 
 # Self-Hosted Mode Installation
 ## Servers Guide
-**Important**:  
-Pour éviter tout blocage
+**Important**:
 - For users who **don't want or can't host their Minecraft server on their own personal machine**, it's common to turn to online hosting providers.
   Keep in mind that you’ll still need a **personal HTTP server to host the resource pack** for the custom discs to be updated automatically to all players.
 - If you're using a **shared Minecraft hosting provider** such as Shockbyte or a similar provider, **make sure your host allows you to run binary files** (specifically `yt-dlp` and `FFmpeg`).
   **Some hosts may have restrictions** or require special permissions. Check their documentation or contact their support if you're unsure.
-- To ensure full compatibility and control, it's highly recommended to use a **VPS (Virtual Private Server)** instead of shared Minecraft hosting.
+- To ensure full compatibility and control, it's highly recommended to use your **own machine** or a **VPS (Virtual Private Server)** instead of shared Minecraft hosting.
   A VPS gives you full root access, allowing you to host both your Minecraft server and an HTTP server (such as Apache) on the same machine, making it ideal for directly serving the resource pack.
   > **Warning**:  
   If you intend to use `yt-dlp` to download YouTube audio directly from your server, you must ensure that the machine (including VPS) is **not part of an IP range currently blocked by YouTube**.  
@@ -358,7 +346,6 @@ Your local HTTP server now works with a Minecraft server **hosted on a different
 6. Restart your Minecraft server to apply the configuration changes.
 7. (Optional) Download the `ProtocolLib.jar` plugin into your Minecraft server's `plugins` folder for custom "Now Playing" toasts, then restart your Minecraft server.
 
-
 ## Dependencies Setup Guide
 The yt-dlp and FFmpeg tools are automatically installed depending on the usage mode chosen in the `config.yml`.  
 If your Minecraft server is running on Linux and the automatic executable permission doesn't work, you can grant execution permission to yt-dlp using a terminal or SSH connection with the following command: `chmod +x plugins/URLCustomDiscs/bin/yt-dlp`  
@@ -370,7 +357,7 @@ If you are using a shared Minecraft hosting provider:
 
 # Edit-Only Mode Installation
 The Edit-Only Mode requires a brief setup to duplicate the reference resource pack to a custom path and rename it with a custom name.
-## Installation
+### Steps to install with the Edit-Only Mode:
 1. Download the `URLCustomDiscs.jar` plugin into your Minecraft server's `plugins` folder.
 2. Start your Minecraft server so the plugin generates the `plugins/URLCustomDiscs` folder containing a `config.yml` file.
 3. Open `plugins/URLCustomDiscs/config.yml` and set the following field to `pluginUsageMode: edit-only`
@@ -451,7 +438,7 @@ URLCustomDiscsPack.zip/
 </details>
 
 ## Support & Community
-You're using the **Self-Hosted Mode**, which gives you full control over hosting and configuration.  
+You're using the **Self-Hosted Mode** or the **Edit-Only Mode**, which gives you full control over hosting and configuration.  
 Even if you're not relying on the **API** or the **resource pack hosting**, your support still helps me maintain and improve the plugin.  
 If you'd like to contribute, please consider supporting the project on [Ko-fi](https://ko-fi.com/mcallium). Thank you! ❤️
 
