@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class YtDlpSetup {
 
@@ -18,7 +20,16 @@ public class YtDlpSetup {
         this.os = os;
         File binDir = new File(plugin.getDataFolder(), "bin");
 
-        String ytDlpName = (os == URLCustomDiscs.OS.WINDOWS) ? "yt-dlp.exe" : "yt-dlp";
+        String ytDlpName = switch (os) {
+            case WINDOWS_X64 -> "yt-dlp.exe";
+            case WINDOWS_ARM64 -> "yt-dlp_arm64.exe";
+            case LINUX_X64 -> "yt-dlp_linux";
+            case LINUX_ARM64 -> "yt-dlp_linux_aarch64";
+            case LINUX_ARMV7 -> "yt-dlp_linux_armv7l";
+            case LINUX_MUSL_X64 -> "yt-dlp_musllinux";
+            case LINUX_MUSL_ARM64 -> "yt-dlp_musllinux_aarch64";
+            default -> "yt-dlp"; // fallback
+        };
         this.ytDlpFile = new File(binDir, ytDlpName);
     }
 
@@ -35,15 +46,31 @@ public class YtDlpSetup {
                 if (ytDlpFile.exists()) ytDlpFile.delete();
 
                 String downloadUrl = switch (os) {
-                    case WINDOWS -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
-                    case LINUX -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux";
-                    default -> throw new IllegalStateException("Unsupported OS: " + os);
+                    case WINDOWS_X64 -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
+                    case WINDOWS_ARM64 -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_arm64.exe";
+                    case LINUX_X64 -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux";
+                    case LINUX_ARM64 -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_aarch64";
+                    case LINUX_ARMV7 -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l.zip";
+                    case LINUX_MUSL_X64 -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_musllinux";
+                    case LINUX_MUSL_ARM64 -> "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_musllinux_aarch64";
+                    default -> throw new IllegalStateException("Unsupported OS/architecture combination: " + os);
                 };
 
-                downloadFile(downloadUrl, ytDlpFile);
+                if (os == URLCustomDiscs.OS.LINUX_ARMV7) {
+                    // Special handling for ARMv7 ZIP
+                    File zipFile = new File(ytDlpFile.getParentFile(), "yt-dlp_linux_armv7l.zip");
+                    downloadFile(downloadUrl, zipFile);
+                    unzipSingleFile(zipFile, "yt-dlp_linux_armv7l", ytDlpFile);
+
+                    if (!zipFile.delete()) {
+                        plugin.getLogger().warning("[SETUP] Could not delete " + zipFile.getName());
+                    }
+                } else {
+                    downloadFile(downloadUrl, ytDlpFile);
+                }
 
                 if (!ytDlpFile.setExecutable(true)) {
-                    plugin.getLogger().warning("[SETUP] Could not set yt-dlp as executable (usually fine on Windows).");
+                    plugin.getLogger().warning("[SETUP] Could not set yt-dlp as executable.");
                 }
 
                 plugin.getLogger().info("[SETUP] yt-dlp updated.");
@@ -114,6 +141,21 @@ public class YtDlpSetup {
             int read;
             while ((read = in.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
+            }
+        }
+    }
+
+    private void unzipSingleFile(File zipFile, String fileNameInZip, File targetFile) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.getName().equals(fileNameInZip)) {
+                    targetFile.getParentFile().mkdirs();
+                    try (FileOutputStream fos = new FileOutputStream(targetFile)) {
+                        zis.transferTo(fos);
+                    }
+                    break;
+                }
             }
         }
     }

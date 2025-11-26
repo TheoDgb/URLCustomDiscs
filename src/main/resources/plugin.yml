@@ -1,6 +1,6 @@
 name: URLCustomDiscs
 main: com.urlcustomdiscs.URLCustomDiscs
-version: 2.6.1
+version: 2.7.2
 api-version: 1.21
 author: Théo DAL GOBBO
 softdepend: [ProtocolLib]
@@ -34,7 +34,7 @@ commands:
       Show details of the custom music disc you're holding (useful for debugging):
       /customdisc info
       
-      Update the yt-dlp dependency:
+      Update Deno and yt-dlp dependencies:
       /customdisc updatedep
       
       Vanilla command to play a custom track (can be used with coordinates):

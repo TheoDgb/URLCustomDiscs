@@ -82,7 +82,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Show details of the custom music disc you're holding:");
             player.sendMessage(ChatColor.YELLOW + "/customdisc info");
             player.sendMessage("");
-            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Update the yt-dlp dependency:");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Update Deno and yt-dlp dependencies:");
             player.sendMessage(ChatColor.YELLOW + "/customdisc updatedep");
             player.sendMessage("");
             player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Other useful vanilla commands:");
@@ -121,13 +121,16 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                         Bukkit.getScheduler().runTask(plugin, () -> {
                             if (!downloaded || !mp3File.exists()) {
                                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to download audio from the URL using yt-dlp.");
-                                player.sendMessage(ChatColor.GRAY + "Attempting to update yt-dlp...");
+                                player.sendMessage(ChatColor.GRAY + "Attempting to update Deno and yt-dlp...");
 
                                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                                    // Update deno
+                                    new DenoSetup(plugin, os).setup();
+
                                     // Update yt-dlp
                                     new YtDlpSetup(plugin, os).setup();
 
-                                    // Retry downloading the MP3 file from the URL using yt-dlp after updating yt-dlp
+                                    // Retry downloading the MP3 file from the URL using yt-dlp after updating deno and yt-dlp
                                     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                                         boolean retried = ytDlpManager.downloadAudioWithYtDlp(input, mp3File);
 
@@ -315,7 +318,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             return true;
         }
 
-        // Command to update the yt-dlp dependency
+        // Command to update Deno and yt-dlp dependencies
         if (args.length == 1 && args[0].equalsIgnoreCase("updatedep")) {
             if (("api".equalsIgnoreCase(pluginUsageMode) && !plugin.getLocalYtDlp())) {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD +
@@ -327,9 +330,16 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                     || "self-hosted".equalsIgnoreCase(pluginUsageMode)
                     || "edit-only".equalsIgnoreCase(pluginUsageMode)) {
 
-                player.sendMessage(ChatColor.GRAY + "Checking for yt-dlp updates...");
-
+                player.sendMessage(ChatColor.GRAY + "Checking for Deno and yt-dlp updates...");
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    DenoSetup denoSetup = new DenoSetup(plugin, os);
+                    try {
+                        denoSetup.setup();
+                        player.sendMessage(ChatColor.GREEN + "Deno update check finished. See console for details.");
+                    } catch (Exception e) {
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to update Deno: " + e.getMessage());
+                    }
+
                     YtDlpSetup ytDlpSetup = new YtDlpSetup(plugin, os);
                     try {
                         ytDlpSetup.setup();

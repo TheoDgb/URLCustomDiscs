@@ -20,7 +20,11 @@ public class FFmpegManager {
 
         File binDir = plugin.getBinFolder();
         File ffmpegDir = new File(binDir, "FFmpeg");
-        String ffmpegName = (os == URLCustomDiscs.OS.WINDOWS) ? "ffmpeg.exe" : "ffmpeg";
+        String ffmpegName = switch (os) {
+            case WINDOWS_X64, WINDOWS_ARM64 -> "ffmpeg.exe";
+            case LINUX_X64, LINUX_ARM64, LINUX_ARMV7, LINUX_MUSL_X64, LINUX_MUSL_ARM64 -> "ffmpeg";
+            default -> null;
+        };
 
         try {
             this.ffmpegFile = findFile(ffmpegDir, ffmpegName);

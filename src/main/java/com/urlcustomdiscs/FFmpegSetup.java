@@ -17,7 +17,6 @@ public class FFmpegSetup {
     private final URLCustomDiscs.OS os;
     private final File binDir;
     private final File ffmpegDir;
-    private File ffmpegFile;
 
     FFmpegSetup(URLCustomDiscs plugin, URLCustomDiscs.OS os) {
         this.plugin = plugin;
@@ -28,6 +27,7 @@ public class FFmpegSetup {
 
     public void setup() {
         try {
+            File ffmpegFile;
             if (ffmpegDir.exists()) {
                 ffmpegFile = detectExecutable(ffmpegDir);
                 if (ffmpegFile != null && ffmpegFile.exists()) {
@@ -40,21 +40,38 @@ public class FFmpegSetup {
 
             plugin.getLogger().info("[SETUP] Downloading FFmpeg...");
             String downloadUrl = switch (os) {
-                case WINDOWS -> "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip";
-                case LINUX -> "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz";
-                default -> throw new IllegalStateException("Unsupported OS: " + os);
+                case WINDOWS_X64, WINDOWS_ARM64 ->
+                        "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip";
+                case LINUX_X64, LINUX_MUSL_X64 ->
+                        "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz";
+                case LINUX_ARM64, LINUX_MUSL_ARM64 ->
+                        "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz";
+                case LINUX_ARMV7 ->
+                        "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-armhf-static.tar.xz";
+                default ->
+                        throw new IllegalStateException("Unsupported OS: " + os);
             };
 
-            File archive = new File(binDir, (os == URLCustomDiscs.OS.WINDOWS) ? "ffmpeg.zip" : "ffmpeg.tar.xz");
+            File archive;
+            if (os == URLCustomDiscs.OS.WINDOWS_X64 || os == URLCustomDiscs.OS.WINDOWS_ARM64) {
+                archive = new File(binDir, "ffmpeg.zip");
+            } else {
+                archive = new File(binDir, "ffmpeg.tar.xz");
+            }
             downloadFile(downloadUrl, archive);
 
+
             // Extract archive
-            if (os == URLCustomDiscs.OS.WINDOWS) {
-                unzip(archive, ffmpegDir);
-                ffmpegFile = findFile(ffmpegDir, "ffmpeg.exe");
-            } else if (os == URLCustomDiscs.OS.LINUX) {
-                untarXz(archive, ffmpegDir);
-                ffmpegFile = findFile(ffmpegDir, "ffmpeg");
+            switch (os) {
+                case WINDOWS_X64, WINDOWS_ARM64 -> {
+                    unzip(archive, ffmpegDir);
+                    ffmpegFile = findFile(ffmpegDir, "ffmpeg.exe");
+                }
+                case LINUX_X64, LINUX_ARM64, LINUX_ARMV7, LINUX_MUSL_X64, LINUX_MUSL_ARM64 -> {
+                    untarXz(archive, ffmpegDir);
+                    ffmpegFile = findFile(ffmpegDir, "ffmpeg");
+                }
+                default -> throw new IllegalStateException("Unsupported OS for extraction: " + os);
             }
 
             // Delete archive
@@ -275,8 +292,6 @@ public class FFmpegSetup {
         }
     }
 
-
-
     private File findFile(File dir, String name) throws IOException {
         try (Stream<Path> files = Files.walk(dir.toPath())) {
             return files
@@ -289,6 +304,10 @@ public class FFmpegSetup {
     }
 
     private File detectExecutable(File ffmpegDir) throws IOException {
-        return (os == URLCustomDiscs.OS.WINDOWS) ? findFile(ffmpegDir, "ffmpeg.exe") : findFile(ffmpegDir, "ffmpeg");
+        return switch (os) {
+            case WINDOWS_X64, WINDOWS_ARM64 -> findFile(ffmpegDir, "ffmpeg.exe");
+            case LINUX_X64, LINUX_ARM64, LINUX_ARMV7, LINUX_MUSL_X64, LINUX_MUSL_ARM64 -> findFile(ffmpegDir, "ffmpeg");
+            default -> null;
+        };
     }
 }

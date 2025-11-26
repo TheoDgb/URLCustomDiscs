@@ -63,9 +63,11 @@ public class URLCustomDiscs extends JavaPlugin {
 
         OS os = getOperatingSystemEnum();
         if ("api".equalsIgnoreCase(pluginUsageMode) && localYtDlp) {
+            new DenoSetup(this, os).setup();
             new YtDlpSetup(this, os).setup();
         }
         if ("self-hosted".equalsIgnoreCase(pluginUsageMode) || "edit-only".equalsIgnoreCase(pluginUsageMode)) {
+            new DenoSetup(this, os).setup();
             new YtDlpSetup(this, os).setup();
             new FFmpegSetup(this, os).setup();
         }
@@ -91,11 +93,42 @@ public class URLCustomDiscs extends JavaPlugin {
         getLogger().info("URLCustomDiscs disabled!");
     }
 
-    public enum OS { WINDOWS, LINUX, OTHER }
+    public enum OS {
+        WINDOWS_X64,
+        WINDOWS_ARM64,
+        LINUX_X64,
+        LINUX_ARM64,
+        LINUX_ARMV7,
+        LINUX_MUSL_X64,
+        LINUX_MUSL_ARM64,
+        OTHER
+    }
     public OS getOperatingSystemEnum() {
         String name = System.getProperty("os.name").toLowerCase();
-        if (name.contains("win")) return OS.WINDOWS;
-        if (name.contains("nux") || name.contains("nix")) return OS.LINUX;
+        String arch = System.getProperty("os.arch").toLowerCase();
+
+        boolean isArm = arch.contains("aarch64") || arch.contains("arm");
+        boolean isArmV7 = arch.contains("armv7");
+        boolean isMusl = new File("/lib/ld-musl-x86_64.so.1").exists() || new File("/lib/ld-musl-aarch64.so.1").exists();
+
+        if (name.contains("win")) {
+            if (isArm) return OS.WINDOWS_ARM64;
+            return OS.WINDOWS_X64;
+        }
+
+        if (name.contains("nux") || name.contains("nix")) {
+            if (isMusl) {
+                if (isArm) return OS.LINUX_MUSL_ARM64;
+                return OS.LINUX_MUSL_X64;
+            } else if (isArmV7) {
+                return OS.LINUX_ARMV7;
+            } else if (isArm) {
+                return OS.LINUX_ARM64;
+            } else {
+                return OS.LINUX_X64;
+            }
+        }
+
         return OS.OTHER;
     }
 

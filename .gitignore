@@ -12,12 +12,6 @@ target/
 *.iml
 *.ipr
 
-### Dependencies ###
-/yt-dlp.exe
-/yt-dlp
-/FFmpeg/
-/FFmpegLinux/
-
 ### Other ###
 /FORME.md
 /PUBLISHREADME.md

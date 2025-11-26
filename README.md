@@ -1,7 +1,7 @@
 ## 1.21-1.21.8 URLCustomDiscs plugin (+ server resource pack)
-Last updated on October 11, 2025.
+Last updated on November 26, 2025.
 
-![Modrinth Downloads Badge](https://img.shields.io/modrinth/dt/9dkRl54Z?style=for-the-badge&logo=modrinth&color=%2300AF5C&link=https%3A%2F%2Fmodrinth.com%2Fplugin%2Furl-custom-discs) ![Github Downloads Badge](https://img.shields.io/github/downloads/TheoDgb/URLCustomDiscs/total?label=Downloads&style=for-the-badge&logo=github&color=blue&link=https://github.com/TheoDgb/URLCustomDiscs)
+[![Modrinth Downloads Badge](https://img.shields.io/modrinth/dt/9dkRl54Z?style=for-the-badge&logo=modrinth&color=%2300AF5C&link=https%3A%2F%2Fmodrinth.com%2Fplugin%2Furl-custom-discs)](https://modrinth.com/plugin/url-custom-discs) [![Github Downloads Badge](https://img.shields.io/github/downloads/TheoDgb/URLCustomDiscs/total?label=Downloads&style=for-the-badge&logo=github&color=blue&link=https://github.com/TheoDgb/URLCustomDiscs)](https://github.com/TheoDgb/URLCustomDiscs)
 
 <img src="https://github.com/TheoDgb/URLCustomDiscs/blob/main/media/URLCustomDiscs_icon.png?raw=true" alt="URLCustomDiscs Icon" style="width: 10%;">
 
@@ -65,7 +65,7 @@ Delete a custom music disc:
 Show details of the custom music disc you're holding (useful for debugging):  
 `/customdisc info`
 
-Update the yt-dlp dependency:  
+Update Deno and yt-dlp dependencies:  
 `/customdisc updatedep`
 
 Vanilla command to play a custom track (can be used with coordinates):  
@@ -106,7 +106,7 @@ For more details, you may explore the API documentation, source code and archite
 ## Audio Download Options
 ### **Warning**: ***YouTube may block my API server in the future (never happened). Please notify me via Discord if this occurs, so I can resolve it.***
 In the meantime, you have **two alternative options**:
-- **Use the auto-installed **yt-dlp** dependency (Minecraft server-side download)**  
+- **Use the auto-installed yt-dlp dependency (Minecraft server-side download)**  
   The plugin uses the **yt-dlp** dependency to download the audio from the YouTube URL into the plugin folder and then send it to the API.
   > This method is **unlikely to work on shared Minecraft hosting providers**, such as Shockbyte, as they often do **not allow execution** of yt-dlp, or the IP ranges of those servers are likely **already banned by YouTube**.
 - **Manually download the MP3 file (admin-only, 100% reliable)**  
@@ -119,10 +119,12 @@ In the meantime, you have **two alternative options**:
 **ProtocolLib** [[Download](https://www.protocollib.com/)]: used to display a custom "Now Playing" toast when a custom disc is inserted into a jukebox
 ### External Tools
 #### License & Attribution
-The plugin automatically installs and uses the following tools (yt-dlp is also kept up to date):
+The plugin automatically installs and uses the following tools (Deno and yt-dlp are also kept up to date):
+- **Deno**, from the [Deno GitHub repository](https://github.com/denoland/deno), licensed under the [MIT License](https://github.com/denoland/deno/blob/main/LICENSE.md)
 - **yt-dlp**, from the [yt-dlp GitHub repository](https://github.com/yt-dlp/yt-dlp), licensed under the [Unlicense](https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE)
 - **FFmpeg**, from the [FFmpeg-Builds GitHub repository (Windows)](https://github.com/BtbN/FFmpeg-Builds) and the [FFmpeg Static Builds (Linux)](https://johnvansickle.com/ffmpeg/), licensed under the [GNU General Public License version 3 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html)
 #### Tool Usage
+- **Deno** is used by yt-dlp to interpret YouTube’s JavaScript and decrypt its signature cipher, which is required to extract and download audio data from YouTube.
 - **yt-dlp** downloads MP3 audio files from YouTube URLs.
 - **FFmpeg** converts MP3 files to Ogg Vorbis format for Minecraft compatibility.
 
