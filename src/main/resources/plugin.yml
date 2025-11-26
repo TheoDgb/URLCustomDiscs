@@ -1,6 +1,6 @@
 name: URLCustomDiscs
 main: com.urlcustomdiscs.URLCustomDiscs
-version: 2.7.2
+version: 2.7.0
 api-version: 1.21
 author: Théo DAL GOBBO
 softdepend: [ProtocolLib]

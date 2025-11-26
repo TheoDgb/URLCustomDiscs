@@ -70,7 +70,7 @@
     </dependencies>
 
     <build>
-        <finalName>URLCustomDiscs-v2.7.2-1.21-1.21.8</finalName>
+        <finalName>URLCustomDiscs-v2.7.0-1.21-1.21.8</finalName>
 
         <plugins>
             <!-- Compiler -->
