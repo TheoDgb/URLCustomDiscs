@@ -5,6 +5,7 @@ import com.urlcustomdiscs.utils.MinecraftServerVersionUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Jukebox;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -111,8 +112,10 @@ public class JukeboxListener implements Listener {
 
             // Stop all custom sounds associated with this jukebox
             for (String currentSoundKey : activeSounds) {
+                String dimension = getMinecraftDimension(Objects.requireNonNull(jukeboxLocation.getWorld()));
                 plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(),
-                        "execute positioned " + jukeboxLocation.getBlockX() + " " + jukeboxLocation.getBlockY() + " " + jukeboxLocation.getBlockZ() +
+                        "execute in " + dimension + " positioned " +
+                                jukeboxLocation.getBlockX() + " " + jukeboxLocation.getBlockY() + " " + jukeboxLocation.getBlockZ() +
                                 " run stopsound @a[distance=..80] * minecraft:" + currentSoundKey);
             }
 
@@ -244,8 +247,10 @@ public class JukeboxListener implements Listener {
 
             // Stop all custom sounds associated with this jukebox
             for (String currentSoundKey : activeSounds) {
+                String dimension = getMinecraftDimension(Objects.requireNonNull(jukeboxLocation.getWorld()));
                 plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(),
-                        "execute positioned " + jukeboxLocation.getBlockX() + " " + jukeboxLocation.getBlockY() + " " + jukeboxLocation.getBlockZ() +
+                        "execute in " + dimension + " positioned " +
+                                jukeboxLocation.getBlockX() + " " + jukeboxLocation.getBlockY() + " " + jukeboxLocation.getBlockZ() +
                                 " run stopsound @a[distance=..80] * minecraft:" + currentSoundKey);
             }
 
@@ -277,5 +282,15 @@ public class JukeboxListener implements Listener {
             Objects.requireNonNull(jukeboxLocation.getWorld()).dropItemNaturally(
                     jukeboxLocation.clone().add(0, 0.55, 0), customDisc.clone());
         }
+    }
+
+    private String getMinecraftDimension(World world) {
+        return switch (world.getEnvironment()) {
+            case NORMAL -> "minecraft:overworld";
+            case NETHER -> "minecraft:the_nether";
+            case THE_END -> "minecraft:the_end";
+            // Custom dimension with the convention "modid:dimension_name"
+            default -> "custom:" + world.getName().toLowerCase(Locale.ROOT);
+        };
     }
 }
