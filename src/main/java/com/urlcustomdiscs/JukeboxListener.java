@@ -111,13 +111,7 @@ public class JukeboxListener implements Listener {
             }
 
             // Stop all custom sounds associated with this jukebox
-            for (String currentSoundKey : activeSounds) {
-                String dimension = getMinecraftDimension(Objects.requireNonNull(jukeboxLocation.getWorld()));
-                plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(),
-                        "execute in " + dimension + " positioned " +
-                                jukeboxLocation.getBlockX() + " " + jukeboxLocation.getBlockY() + " " + jukeboxLocation.getBlockZ() +
-                                " run stopsound @a[distance=..80] * minecraft:" + currentSoundKey);
-            }
+            stopCustomJukeboxSounds(jukeboxLocation, activeSounds);
 
             // Clear the list of active sounds for this jukebox
             activeSounds.clear();
@@ -246,13 +240,7 @@ public class JukeboxListener implements Listener {
         if (activeSounds != null && !activeSounds.isEmpty() && customDisc != null) {
 
             // Stop all custom sounds associated with this jukebox
-            for (String currentSoundKey : activeSounds) {
-                String dimension = getMinecraftDimension(Objects.requireNonNull(jukeboxLocation.getWorld()));
-                plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(),
-                        "execute in " + dimension + " positioned " +
-                                jukeboxLocation.getBlockX() + " " + jukeboxLocation.getBlockY() + " " + jukeboxLocation.getBlockZ() +
-                                " run stopsound @a[distance=..80] * minecraft:" + currentSoundKey);
-            }
+            stopCustomJukeboxSounds(jukeboxLocation, activeSounds);
 
             // Drop the stored custom disc
             dropCustomDisc(jukeboxLocation, customDisc);
@@ -284,13 +272,25 @@ public class JukeboxListener implements Listener {
         }
     }
 
-    private String getMinecraftDimension(World world) {
-        return switch (world.getEnvironment()) {
-            case NORMAL -> "minecraft:overworld";
-            case NETHER -> "minecraft:the_nether";
-            case THE_END -> "minecraft:the_end";
-            // Custom dimension with the convention "modid:dimension_name"
-            default -> "custom:" + world.getName().toLowerCase(Locale.ROOT);
-        };
+    private void stopCustomJukeboxSounds(Location jukeboxLocation, Set<String> activeSounds) {
+        if (activeSounds == null || activeSounds.isEmpty()) return;
+
+        World world = jukeboxLocation.getWorld();
+        if (world == null) return;
+
+        String dimension = world.getKey().toString();
+        // example dimension result: minecraft:overworld, minecraft:the_nether, minecraft:multiverse_core_world
+
+        for (String currentSoundKey : activeSounds) {
+            plugin.getServer().dispatchCommand(
+                    plugin.getServer().getConsoleSender(),
+                    "execute in " + dimension +
+                            " positioned " +
+                            jukeboxLocation.getBlockX() + " " +
+                            jukeboxLocation.getBlockY() + " " +
+                            jukeboxLocation.getBlockZ() +
+                            " run stopsound @a[distance=..80] * minecraft:" + currentSoundKey
+            );
+        }
     }
 }
