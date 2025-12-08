@@ -29,7 +29,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.zip.*;
 
 public class CommandURLCustomDiscs implements CommandExecutor {
 
@@ -39,6 +38,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
     private final SelfHostedManager selfHostedManager;
     private final File discUuidFile;
     private final String pluginUsageMode;
+    private final PermissionManager permissionManager;
 
     public CommandURLCustomDiscs(URLCustomDiscs plugin, URLCustomDiscs.OS os, RemoteApiClient remoteApiClient, SelfHostedManager selfHostedManager) {
         this.plugin = plugin;
@@ -47,6 +47,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         this.selfHostedManager = selfHostedManager;
         this.discUuidFile = new File(plugin.getDataFolder(), "discs.json");
         this.pluginUsageMode = plugin.getPluginUsageMode();
+        this.permissionManager = new PermissionManager(plugin);
     }
 
     @Override
@@ -54,6 +55,183 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("Only players can use this command.");
             return false;
+        }
+
+        // Admin commands (OP-only)
+        if (args.length >= 2 && args[0].equalsIgnoreCase("admin")) {
+            if (!permissionManager.isOp(player)) {
+                player.sendMessage(ChatColor.RED + "You can't do that.");
+                return true;
+            }
+
+            if (args[1].equalsIgnoreCase("on")) {
+                permissionManager.setCreationEnabled(true);
+                player.sendMessage(ChatColor.GREEN + "Disc creation enabled.");
+                return true;
+            }
+
+            if (args[1].equalsIgnoreCase("off")) {
+                permissionManager.setCreationEnabled(false);
+                player.sendMessage(ChatColor.GREEN + "Disc creation disabled.");
+                return true;
+            }
+
+            if (args.length == 3 && args[1].equalsIgnoreCase("limit")) {
+                if (args[2].equalsIgnoreCase("unlimited")) {
+                    permissionManager.setMaxDiscsPerUser(-1);
+                    player.sendMessage(ChatColor.GREEN + "Disc limit removed.");
+                } else {
+                    try {
+                        int limit = Integer.parseInt(args[2]);
+                        permissionManager.setMaxDiscsPerUser(limit);
+                        player.sendMessage(ChatColor.GREEN + "Disc limit set to " + limit + ".");
+                    } catch (NumberFormatException e) {
+                        player.sendMessage(ChatColor.RED + "Invalid number.");
+                    }
+                }
+                return true;
+            }
+
+            if (args.length == 3 && args[1].equalsIgnoreCase("reset")) {
+                String discName = args[2].toLowerCase();
+                try {
+                    DiscJsonManager discManager = new DiscJsonManager(plugin);
+                    JSONObject discInfo = discManager.getDisc(discName);
+                    
+                    if (discInfo == null || discInfo.isEmpty()) {
+                        player.sendMessage(ChatColor.RED + "Disc not found.");
+                        return true;
+                    }
+
+                    permissionManager.resetDiscOwnership(discInfo);
+                    discManager.saveDisc(discName, discInfo);
+                    player.sendMessage(ChatColor.GREEN + "Ownership reset for disc: " + discName);
+                } catch (IOException e) {
+                    player.sendMessage(ChatColor.RED + "Error resetting disc.");
+                }
+                return true;
+            }
+
+            if (args.length == 4 && args[1].equalsIgnoreCase("transfer")) {
+                String discName = args[2].toLowerCase();
+                String newOwner = args[3];
+                
+                try {
+                    DiscJsonManager discManager = new DiscJsonManager(plugin);
+                    JSONObject discInfo = discManager.getDisc(discName);
+                    
+                    if (discInfo == null || discInfo.isEmpty()) {
+                        player.sendMessage(ChatColor.RED + "Disc not found.");
+                        return true;
+                    }
+
+                    permissionManager.transferOwnership(discInfo, newOwner);
+                    discManager.saveDisc(discName, discInfo);
+                    player.sendMessage(ChatColor.GREEN + "Disc transferred to " + newOwner + ".");
+                } catch (IOException e) {
+                    player.sendMessage(ChatColor.RED + "Error transferring disc.");
+                }
+                return true;
+            }
+
+            player.sendMessage(ChatColor.RED + "Unknown admin command.");
+            return true;
+        }
+
+        // Share command
+        if (args.length == 4 && args[0].equalsIgnoreCase("share")) {
+            String discName = args[1].toLowerCase();
+            String targetPlayer = args[2];
+            String permString = args[3].toLowerCase();
+
+            try {
+                DiscJsonManager discManager = new DiscJsonManager(plugin);
+                JSONObject discInfo = discManager.getDisc(discName);
+                
+                if (discInfo == null || discInfo.isEmpty()) {
+                    player.sendMessage(ChatColor.RED + "Disc not found.");
+                    return true;
+                }
+
+                if (!permissionManager.canManage(player, discInfo)) {
+                    player.sendMessage(ChatColor.RED + "You can't do that.");
+                    return true;
+                }
+
+                String[] perms;
+                if (permString.equals("all")) {
+                    perms = new String[]{"use", "give", "delete"};
+                } else if (permString.equals("use") || permString.equals("give") || permString.equals("delete")) {
+                    perms = new String[]{permString};
+                } else {
+                    player.sendMessage(ChatColor.RED + "Invalid permission type.");
+                    return true;
+                }
+
+                permissionManager.shareDisc(discInfo, targetPlayer, perms);
+                discManager.saveDisc(discName, discInfo);
+                player.sendMessage(ChatColor.GREEN + "Shared disc with " + targetPlayer + ".");
+            } catch (IOException e) {
+                player.sendMessage(ChatColor.RED + "Error sharing disc.");
+            }
+            return true;
+        }
+
+        // Unshare command
+        if (args.length == 3 && args[0].equalsIgnoreCase("unshare")) {
+            String discName = args[1].toLowerCase();
+            String targetPlayer = args[2];
+
+            try {
+                DiscJsonManager discManager = new DiscJsonManager(plugin);
+                JSONObject discInfo = discManager.getDisc(discName);
+                
+                if (discInfo == null || discInfo.isEmpty()) {
+                    player.sendMessage(ChatColor.RED + "Disc not found.");
+                    return true;
+                }
+
+                if (!permissionManager.canManage(player, discInfo)) {
+                    player.sendMessage(ChatColor.RED + "You can't do that.");
+                    return true;
+                }
+
+                permissionManager.unshareDisc(discInfo, targetPlayer);
+                discManager.saveDisc(discName, discInfo);
+                player.sendMessage(ChatColor.GREEN + "Unshared disc from " + targetPlayer + ".");
+            } catch (IOException e) {
+                player.sendMessage(ChatColor.RED + "Error unsharing disc.");
+            }
+            return true;
+        }
+
+        // Owners command
+        if (args.length == 2 && args[0].equalsIgnoreCase("owners")) {
+            String discName = args[1].toLowerCase();
+
+            try {
+                DiscJsonManager discManager = new DiscJsonManager(plugin);
+                JSONObject discInfo = discManager.getDisc(discName);
+                
+                if (discInfo == null || discInfo.isEmpty()) {
+                    player.sendMessage(ChatColor.RED + "Disc not found.");
+                    return true;
+                }
+
+                String owner = discInfo.optString("owner", "None");
+                player.sendMessage(ChatColor.GOLD + "Owner: " + ChatColor.WHITE + owner);
+
+                JSONObject shared = discInfo.optJSONObject("shared");
+                if (shared != null && shared.length() > 0) {
+                    player.sendMessage(ChatColor.GOLD + "Shared with:");
+                    for (String sharedPlayer : shared.keySet()) {
+                        player.sendMessage(ChatColor.WHITE + "- " + sharedPlayer);
+                    }
+                }
+            } catch (IOException e) {
+                player.sendMessage(ChatColor.RED + "Error getting disc info.");
+            }
+            return true;
         }
 
         // Help command
@@ -79,6 +257,11 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Delete a custom music disc:");
             player.sendMessage(ChatColor.YELLOW + "/customdisc delete " + ChatColor.GOLD + "<" + ChatColor.YELLOW + "disc_name" + ChatColor.GOLD + ">");
             player.sendMessage("");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Share/Unshare disc:");
+            player.sendMessage(ChatColor.YELLOW + "/customdisc share " + ChatColor.GOLD + "<disc> <player> <use|give|delete|all>");
+            player.sendMessage(ChatColor.YELLOW + "/customdisc unshare " + ChatColor.GOLD + "<disc> <player>");
+            player.sendMessage(ChatColor.YELLOW + "/customdisc owners " + ChatColor.GOLD + "<disc>");
+            player.sendMessage("");
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "Show details of the custom music disc you're holding:");
             player.sendMessage(ChatColor.YELLOW + "/customdisc info");
             player.sendMessage("");
@@ -95,24 +278,26 @@ public class CommandURLCustomDiscs implements CommandExecutor {
 
         // Command to create a custom disc
         if (args.length == 4 && args[0].equalsIgnoreCase("create")) {
+            // Check permission
+            if (!permissionManager.canCreate(player)) {
+                String reason = permissionManager.getCreationBlockedReason(player);
+                player.sendMessage(ChatColor.RED + (reason != null ? reason : "You can't do that."));
+                return true;
+            }
+
             String input = args[1];
             String rawDiscName = args[2].replaceAll("[^a-zA-Z0-9_-]", "_");
-            String audioType = args[3].toLowerCase(); // "mono" or "stereo"
+            String audioType = args[3].toLowerCase();
 
             player.sendMessage(ChatColor.GRAY + "Processing audio...");
 
-            try { // For URL
-
-                // Checks if input is a valid URL
+            try {
                 new URL(input);
 
-                // Download the mp3 for api mode, if local yt-dlp is enabled
-                // Download the mp3 for self-hosted and edit-only modes
                 if (("api".equalsIgnoreCase(pluginUsageMode) && plugin.getLocalYtDlp())
                         || "self-hosted".equalsIgnoreCase(pluginUsageMode)
                         || "edit-only".equalsIgnoreCase(pluginUsageMode)) {
 
-                    // Download the MP3 file from the URL in the audio_to_send folder (api) or edit_resource_pack/temp_audio folder (self-hosted and edit-only)
                     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                         YtDlpManager ytDlpManager = new YtDlpManager(plugin, os);
                         File mp3File = new File(plugin.getAudioFolder(), rawDiscName + ".mp3");
@@ -124,13 +309,9 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                                 player.sendMessage(ChatColor.GRAY + "Attempting to update Deno and yt-dlp...");
 
                                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                                    // Update deno
                                     new DenoSetup(plugin, os).setup();
-
-                                    // Update yt-dlp
                                     new YtDlpSetup(plugin, os).setup();
 
-                                    // Retry downloading the MP3 file from the URL using yt-dlp after updating deno and yt-dlp
                                     Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                                         boolean retried = ytDlpManager.downloadAudioWithYtDlp(input, mp3File);
 
@@ -140,40 +321,35 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                                                 return;
                                             }
                                             player.sendMessage(ChatColor.GREEN + "Audio downloaded after updating yt-dlp.");
-
-                                            // Pass the downloaded MP3 file name
                                             continueDiscCreation(player, mp3File.getName(), rawDiscName, audioType);
                                         });
                                     });
                                 });
+                            } else {
+                                continueDiscCreation(player, mp3File.getName(), rawDiscName, audioType);
                             }
-                            continueDiscCreation(player, mp3File.getName(), rawDiscName, audioType);
                         });
                     });
 
                 } else {
-                    // The URL is kept as is
                     continueDiscCreation(player, input, rawDiscName, audioType);
                 }
                 return true;
 
-            } catch (MalformedURLException e) { // For MP3 file
-                // If it is not a URL, check if it is an MP3 file in the audio_to_send folder
+            } catch (MalformedURLException e) {
                 File localMp3 = new File(plugin.getAudioToSendFolder(), input);
                 if (localMp3.exists() && localMp3.isFile() && input.toLowerCase().endsWith(".mp3")) {
 
                     if ("api".equalsIgnoreCase(pluginUsageMode)) {
-                        // Check audio file size
-                        long maxSize = 12L * 1024L * 1024L; // 12 MB
+                        long maxSize = 12L * 1024L * 1024L;
                         if (localMp3.length() > maxSize) {
                             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "The audio file exceeds the maximum allowed size of 12MB.");
                             return true;
                         }
-                        // Check audio file duration with MP3agic
                         try {
                             Mp3File mp3file = new Mp3File(localMp3);
                             long durationSeconds = mp3file.getLengthInSeconds();
-                            if (durationSeconds > 300) { // 5 minutes
+                            if (durationSeconds > 300) {
                                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "The audio file exceeds the maximum allowed length of 5 minutes.");
                                 return true;
                             }
@@ -183,7 +359,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                         }
                     } else if ("self-hosted".equalsIgnoreCase(pluginUsageMode) || "edit-only".equalsIgnoreCase(pluginUsageMode)) {
                         File destFile = new File(plugin.getTempAudioFolder(), input);
-                        try { // Move the MP3 file from the audio_to_send folder to the edit_resource_pack/temp_audio folder
+                        try {
                             Files.move(localMp3.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                         } catch (IOException e1) {
                             plugin.getLogger().severe("Exception: " + e.getMessage());
@@ -204,6 +380,25 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         // Command to give yourself a custom disc
         if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
             String discName = args[1].toLowerCase().replaceAll(" ", "_");
+            
+            try {
+                DiscJsonManager discManager = new DiscJsonManager(plugin);
+                JSONObject discInfo = discManager.getDisc(discName);
+                
+                if (discInfo == null || discInfo.isEmpty()) {
+                    player.sendMessage(ChatColor.RED + "Disc not found.");
+                    return true;
+                }
+
+                if (!permissionManager.canGive(player, discInfo)) {
+                    player.sendMessage(ChatColor.RED + "You can't do that.");
+                    return true;
+                }
+            } catch (IOException e) {
+                player.sendMessage(ChatColor.RED + "Error checking permissions.");
+                return true;
+            }
+
             giveCustomMusicDisc(player, discName);
             return true;
         }
@@ -218,15 +413,11 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             }
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "List of custom music discs:");
 
-            // Sort disc names alphabetically
             List<String> discNames = new ArrayList<>(discData.keySet());
             Collections.sort(discNames);
             for (String discName : discNames) {
-                // Retrieve the object corresponding to the disc
                 JSONObject discInfo = discData.getJSONObject(discName);
-                // Retrieve the displayName of each disc
                 String displayName = discInfo.getString("displayName");
-                // Create the TextComponent using the displayName
                 TextComponent discText = createDiscTextComponent(displayName);
                 player.spigot().sendMessage(discText);
             }
@@ -251,9 +442,13 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 plugin.getLogger().severe("Exception: " + e.getMessage());
             }
 
-            // Check if the custom disc exists
             if (discInfo == null || discInfo.isEmpty()) {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Custom disc '" + discName + "' does not exist.");
+                return true;
+            }
+
+            if (!permissionManager.canDelete(player, discInfo)) {
+                player.sendMessage(ChatColor.RED + "You can't do that.");
                 return true;
             }
 
@@ -267,7 +462,6 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 }
 
                 String minecraftServerVersion = plugin.getMinecraftServerVersion();
-
                 remoteApiClient.deleteCustomDiscRemotely(player, discName, discInfoFinal, token, minecraftServerVersion);
                 return true;
             } else if ("self-hosted".equalsIgnoreCase(pluginUsageMode) || "edit-only".equalsIgnoreCase(pluginUsageMode)) {
@@ -288,9 +482,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 if (meta != null && meta.hasCustomModelData()) {
                     int customModelData = meta.getCustomModelData();
 
-                    // Load disc data from JSON file
                     JSONObject discData = DiscUtils.loadDiscData(discUuidFile);
-                    // Find the disc name from the CustomModelData
                     String discName = DiscUtils.getDiscNameFromCustomModelData(discData, customModelData);
 
                     if (discName != null) {
@@ -299,7 +491,6 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                         String discUUID = discInfo.getString("uuid");
                         String soundKey = "customdisc." + discName.toLowerCase().replaceAll(" ", "_");
 
-                        // Send information to the player
                         player.sendMessage(ChatColor.GRAY + "Disc played: " + ChatColor.GOLD + discName);
                         player.sendMessage(ChatColor.GRAY + "Display name: " + ChatColor.GOLD + displayName);
                         player.sendMessage(ChatColor.GRAY + "UUID: " + ChatColor.GOLD + discUUID);
@@ -362,7 +553,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         DiscJsonManager discManager = new DiscJsonManager(plugin);
         JSONObject discInfo = null;
         try {
-            discInfo = discManager.getOrCreateDisc(discName, displayName);
+            discInfo = discManager.getOrCreateDisc(discName, displayName, player.getName());
         } catch (IOException e) {
             plugin.getLogger().severe("Exception: " + e.getMessage());
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error creating disc information.");
@@ -390,11 +581,9 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 return;
             }
 
-            // Read JSON file from discs
             String content = Files.readString(discUuidFile.toPath());
             JSONObject discData = new JSONObject(content);
 
-            // Check if the disk exists
             if (!discData.has(discName)) {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "The disc '" + discName + "' doesn't exist.");
                 return;
@@ -404,7 +593,6 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             int customModelData = discInfo.getInt("customModelData");
             String displayName = discInfo.getString("displayName");
 
-            // Create the disc with the same properties as when it was created
             ItemStack disc = new ItemStack(Material.MUSIC_DISC_13);
             ItemMeta meta = disc.getItemMeta();
 
@@ -414,24 +602,3 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                 lore.add(ChatColor.GRAY + "Custom music disc: " + displayName);
                 meta.setLore(lore);
                 meta.setCustomModelData(customModelData);
-                // Hide "C418 - 13" => cant (or rather lazy to create a new json just for this)
-                disc.setItemMeta(meta);
-            }
-
-            //Add the disc to the player's inventory
-            player.getInventory().addItem(disc);
-            player.sendMessage(ChatColor.GRAY + "Custom disc " + ChatColor.GOLD + displayName + ChatColor.GRAY + " added to your inventory.");
-        } catch (IOException e) {
-            plugin.getLogger().severe("Exception: " + e.getMessage());
-            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Error recovering the custom disc.");
-        }
-    }
-
-    private TextComponent createDiscTextComponent(String displayName) {
-        TextComponent discText = new TextComponent(displayName);
-        discText.setColor(net.md_5.bungee.api.ChatColor.GOLD);
-        discText.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/customdisc give " + displayName));
-        discText.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.YELLOW + "Click to get this disc!")));
-        return discText;
-    }
-}
