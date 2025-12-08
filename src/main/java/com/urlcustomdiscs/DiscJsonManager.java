@@ -17,7 +17,7 @@ public class DiscJsonManager {
         this.discUuidFile = new File(plugin.getDataFolder(), "discs.json");
     }
 
-    public JSONObject getOrCreateDisc(String discName, String displayName) throws IOException {
+    public JSONObject getOrCreateDisc(String discName, String displayName, String playerName) throws IOException {
         JSONObject discData = loadDiscData();
 
         if (discData.has(discName)) {
@@ -29,13 +29,16 @@ public class DiscJsonManager {
         JSONObject discInfo = new JSONObject();
         discInfo.put("uuid", newUUID);
 
-        int rawModelData = (int) (Long.parseLong(newUUID.replace("-", "").substring(0, 8), 16) & 0x7FFFFF); // Max 23 bits
-        // Round the customModelData to be 1.21.4 compatible
-        int customModelData = (rawModelData / 16) * 16; // Round down to a multiple of 16
+        int rawModelData = (int) (Long.parseLong(newUUID.replace("-", "").substring(0, 8), 16) & 0x7FFFFF);
+        int customModelData = (rawModelData / 16) * 16;
 
         discInfo.put("customModelData", customModelData);
         plugin.getLogger().info("Generated customModelData: " + customModelData);
         discInfo.put("displayName", displayName);
+        
+        // Add ownership
+        discInfo.put("owner", playerName);
+        discInfo.put("shared", new JSONObject());
 
         discData.put(discName, discInfo);
         saveDiscData(discData);
@@ -54,6 +57,12 @@ public class DiscJsonManager {
             discData.remove(discName);
             saveDiscData(discData);
         }
+    }
+
+    public void saveDisc(String discName, JSONObject discInfo) throws IOException {
+        JSONObject discData = loadDiscData();
+        discData.put(discName, discInfo);
+        saveDiscData(discData);
     }
 
     private JSONObject loadDiscData() throws IOException {
