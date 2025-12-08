@@ -1,8 +1,8 @@
 name: URLCustomDiscs
 main: com.urlcustomdiscs.URLCustomDiscs
-version: 2.7.2
+version: customnew.2.7.2
 api-version: 1.21
-author: Théo DAL GOBBO
+author: Théo DAL GOBBO && Myce_123
 softdepend: [ProtocolLib]
 commands:
   customdisc:
@@ -30,6 +30,18 @@ commands:
       
       Delete a custom music disc:
       /customdisc delete <disc_name>
+      
+      Share/unshare discs:
+      /customdisc share <disc> <player> <use|give|delete|all>
+      /customdisc unshare <disc> <player>
+      /customdisc owners <disc>
+      
+      Admin commands (OP-only):
+      /customdisc admin on
+      /customdisc admin off
+      /customdisc admin limit <num|unlimited>
+      /customdisc admin reset <disc>
+      /customdisc admin transfer <disc> <player>
       
       Show details of the custom music disc you're holding (useful for debugging):
       /customdisc info
