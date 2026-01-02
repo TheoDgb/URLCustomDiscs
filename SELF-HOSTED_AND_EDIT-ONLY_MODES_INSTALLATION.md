@@ -358,6 +358,8 @@ If you are using a shared Minecraft hosting provider:
     - If your host isn't listed, please refer to their documentation or contact their support to know whether setting executable permissions is supported.
 
 # Edit-Only Mode Installation
+The introductory remarks from the "Important" section of the Servers Guide in the Self-Hosted Mode Installation must be taken into account for the Edit-Only mode.
+
 The Edit-Only Mode requires a brief setup to duplicate the reference resource pack to a custom path and rename it with a custom name.
 ### Steps to install with the Edit-Only Mode:
 1. Download the `URLCustomDiscs.jar` plugin into your Minecraft server's `plugins` folder.
