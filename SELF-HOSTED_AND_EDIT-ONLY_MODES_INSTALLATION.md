@@ -306,7 +306,7 @@ Your local HTTP server now works with a Minecraft server **hosted on the same ma
           `max_input_time = 300`
 - Set the correct ownership to make changes in `/var/www/html`:  
   `sudo chown -R <your_user>:www-data /var/www/html`
-- In `C:/Apache24/htdocs/`, create an `info.php` file with the following content:  
+- In `/var/www/html`, create an `info.php` file with the following content:  
   `<?php phpinfo(); ?>`
 - Restart Apache, then try to access [http://your_public_ip:80/info.php]().
     - If PHP is correctly installed and configured, you should see a page with PHP configuration details, meaning PHP is working with Apache.
