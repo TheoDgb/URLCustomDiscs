@@ -368,11 +368,11 @@ The Edit-Only Mode requires a brief setup to duplicate the reference resource pa
 3. Open `plugins/URLCustomDiscs/config.yml` and set the following field to `pluginUsageMode: edit-only`
 4. In the same config file, locate the **EDIT-ONLY MODE CONFIGURATION** section.  
    Set the `duplicatedZipFilePath` field to the path relative to the `plugins` folder, including the filename, where the reference resource pack must be duplicated.
-6. Restart your Minecraft server to apply the configuration changes.  
+5. Restart your Minecraft server to apply the configuration changes.  
    This will create the `plugins/URLCustomDiscs/edit-only_mode_reference_resource_pack` and `plugins/URLCustomDiscs/edit-only_mode_reference_resource_pack/duplicated_resource_pack` (default path for the duplicated resource pack) folders.
-7. Download the appropriate resource pack for your Minecraft server version ([1.21](https://github.com/TheoDgb/URLCustomDiscs/releases/download/v2.7.2/URLCustomDiscsPack_1.21.zip) or [1.21.4+](https://github.com/TheoDgb/URLCustomDiscs/releases/download/v2.7.2/URLCustomDiscsPack_1.21.4.zip)), rename it to `URLCustomDiscsPack.zip`, then place it in the `plugins/URLCustomDiscs/edit-only_mode_reference_resource_pack` folder.
-8. You can now use the create command: `/customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>`
-9. (Optional) Download the `ProtocolLib.jar` plugin into your Minecraft server's `plugins` folder for custom "Now Playing" toasts, then restart your Minecraft server.
+6. Download the appropriate resource pack for your Minecraft server version ([1.21](https://github.com/TheoDgb/URLCustomDiscs/releases/download/v2.7.2/URLCustomDiscsPack_1.21.zip) or [1.21.4+](https://github.com/TheoDgb/URLCustomDiscs/releases/download/v2.7.2/URLCustomDiscsPack_1.21.4.zip)), rename it to `URLCustomDiscsPack.zip`, then place it in the `plugins/URLCustomDiscs/edit-only_mode_reference_resource_pack` folder.
+7. You can now use the create command: `/customdisc create <URL OR audio_name.mp3> <disc_name> <mono/stereo>`
+8. (Optional) Download the `ProtocolLib.jar` plugin into your Minecraft server's `plugins` folder for custom "Now Playing" toasts, then restart your Minecraft server.
 
 ## Tree Structures
 <details>
