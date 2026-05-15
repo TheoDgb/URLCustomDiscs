@@ -56,6 +56,11 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             return false;
         }
 
+        if (!sender.hasPermission("customdisc.admin")) {
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Command reserved for administrators.");
+            return true;
+        }
+
         // Help command
         if (args.length == 1 && args[0].equalsIgnoreCase("help")) {
             player.sendMessage("");

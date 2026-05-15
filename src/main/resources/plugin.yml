@@ -42,3 +42,8 @@ commands:
       
       Vanilla command to stop a custom track:
       /stopsound @a * minecraft:customdisc.<disc_name>
+
+permissions:
+  customdisc.admin:
+    description: Access to admin commands
+    default: op
