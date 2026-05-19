@@ -344,6 +344,7 @@ Your local HTTP server now works with a Minecraft server **hosted on a different
 3. Start your Minecraft server so the plugin generates the `plugins/URLCustomDiscs` folder containing a `config.yml` file.
 4. Open `plugins/URLCustomDiscs/config.yml` and set the following field to `pluginUsageMode: self-hosted`.
 5. In the same config file, locate the **SELF-HOSTED MODE CONFIGURATION** section.  
+   Set the `zipFileAbsolutePath` to the absolute path of the [URLCustomDiscsPack.zip](https://github.com/TheoDgb/URLCustomDiscs/releases) resource pack.
    Follow the instructions to configure the plugin using the public IP address of your HTTP server.
 6. Restart your Minecraft server to apply the configuration changes.
 7. (Optional) Download the `ProtocolLib.jar` plugin into your Minecraft server's `plugins` folder for custom "Now Playing" toasts, then restart your Minecraft server.
