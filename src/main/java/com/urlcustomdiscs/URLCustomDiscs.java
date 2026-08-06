@@ -75,7 +75,9 @@ public class URLCustomDiscs extends JavaPlugin {
         RemoteApiClient remoteApiClient = new RemoteApiClient(this, getApiBaseURL());
         SelfHostedManager selfHostedManager = new SelfHostedManager(this, os);
 
-        Objects.requireNonNull(this.getCommand("customdisc")).setExecutor(new CommandURLCustomDiscs(this, os, remoteApiClient, selfHostedManager));
+        CommandURLCustomDiscs commandHandler = new CommandURLCustomDiscs(this, os, remoteApiClient, selfHostedManager);
+        Objects.requireNonNull(this.getCommand("customdisc")).setExecutor(commandHandler);
+        Objects.requireNonNull(this.getCommand("customdisc")).setTabCompleter(commandHandler);
 
         // Detect the ProtocolLib plugin to enable custom Now Playing toasts
         boolean protocolLibEnabled = getServer().getPluginManager().isPluginEnabled("ProtocolLib");

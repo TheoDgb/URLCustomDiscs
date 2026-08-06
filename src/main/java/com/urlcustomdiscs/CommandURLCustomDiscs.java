@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -31,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.zip.*;
 
-public class CommandURLCustomDiscs implements CommandExecutor {
+public class CommandURLCustomDiscs implements CommandExecutor, TabCompleter {
 
     private final URLCustomDiscs plugin;
     private final URLCustomDiscs.OS os;
@@ -56,8 +57,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
             return false;
         }
 
-        if (!sender.hasPermission("customdisc.admin")) {
-            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Command reserved for administrators.");
+        if (args.length > 0 && !hasSubcommandPermission(player, args[0])) {
             return true;
         }
 
@@ -438,5 +438,69 @@ public class CommandURLCustomDiscs implements CommandExecutor {
         discText.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/customdisc give " + displayName));
         discText.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.YELLOW + "Click to get this disc!")));
         return discText;
+    }
+
+    // Check that the player has the permission for the requested subcommand
+    private boolean hasSubcommandPermission(Player player, String subCommand) {
+        String permission = switch (subCommand.toLowerCase()) {
+            case "help" -> "customdisc.help";
+            case "create" -> "customdisc.create";
+            case "give" -> "customdisc.give";
+            case "list" -> "customdisc.list";
+            case "delete" -> "customdisc.delete";
+            case "info" -> "customdisc.info";
+            case "updatedep" -> "customdisc.updatedep";
+            default -> null;
+        };
+        if (permission == null || player.hasPermission(permission)) {
+            return true;
+        }
+        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You don't have permission to use this command.");
+        return false;
+    }
+
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
+        List<String> completions = new ArrayList<>();
+        String subCommand = args.length > 0 ? args[0].toLowerCase() : "";
+
+        if (args.length == 1) {
+            String prefix = args[0].toLowerCase();
+            List<String> available = new ArrayList<>();
+            if (sender.hasPermission("customdisc.help")) available.add("help");
+            if (sender.hasPermission("customdisc.create")) available.add("create");
+            if (sender.hasPermission("customdisc.give")) available.add("give");
+            if (sender.hasPermission("customdisc.list")) available.add("list");
+            if (sender.hasPermission("customdisc.delete")) available.add("delete");
+            if (sender.hasPermission("customdisc.info")) available.add("info");
+            if (sender.hasPermission("customdisc.updatedep")) available.add("updatedep");
+            for (String s : available) {
+                if (s.startsWith(prefix)) completions.add(s);
+            }
+        } else if (args.length == 2) {
+            String prefix = args[1].toLowerCase();
+            if (subCommand.equals("give") || subCommand.equals("delete")) {
+                JSONObject discData = DiscUtils.loadDiscData(discUuidFile);
+                for (String discName : discData.keySet()) {
+                    if (discName.toLowerCase().startsWith(prefix)) completions.add(discName);
+                }
+            } else if (subCommand.equals("create")) {
+                File audioToSend = plugin.getAudioToSendFolder();
+                if (audioToSend.exists() && audioToSend.isDirectory()) {
+                    File[] mp3Files = audioToSend.listFiles((dir, name) -> name.toLowerCase().endsWith(".mp3"));
+                    if (mp3Files != null) {
+                        for (File mp3 : mp3Files) {
+                            if (mp3.getName().toLowerCase().startsWith(prefix)) completions.add(mp3.getName());
+                        }
+                    }
+                }
+            }
+        } else if (args.length == 3 && subCommand.equals("create")) {
+            String prefix = args[2].toLowerCase();
+            if ("mono".startsWith(prefix)) completions.add("mono");
+            if ("stereo".startsWith(prefix)) completions.add("stereo");
+        }
+
+        return completions;
     }
 }

@@ -1,5 +1,5 @@
-## 1.21-1.21.8 URLCustomDiscs plugin (+ server resource pack)
-Last updated on November 26, 2025.
+## 1.21-26.2 URLCustomDiscs plugin (+ server resource pack)
+Last updated on August 6, 2026.
 
 [![Modrinth Downloads Badge](https://img.shields.io/modrinth/dt/9dkRl54Z?style=for-the-badge&logo=modrinth&color=%2300AF5C&link=https%3A%2F%2Fmodrinth.com%2Fplugin%2Furl-custom-discs)](https://modrinth.com/plugin/url-custom-discs) [![Github Downloads Badge](https://img.shields.io/github/downloads/TheoDgb/URLCustomDiscs/total?label=Downloads&style=for-the-badge&logo=github&color=blue&link=https://github.com/TheoDgb/URLCustomDiscs)](https://github.com/TheoDgb/URLCustomDiscs)
 
@@ -73,6 +73,26 @@ Vanilla command to play a custom track (can be used with coordinates):
 
 Vanilla command to stop a custom track:  
 `/stopsound @a * minecraft:customdisc.<disc_name>`
+
+## Permissions
+Each subcommand has its own permission so you can grant access to specific players or ranks (for example with **LuckPerms**). Commands also support **tab completion** for the subcommands, disc names and local MP3 files.
+
+| Permission | Allows | Default |
+| --- | --- | --- |
+| `customdisc.help` | View the help message (`/customdisc help`) | true |
+| `customdisc.create` | Create a custom music disc (`/customdisc create ...`) | op |
+| `customdisc.give` | Give yourself a custom music disc (`/customdisc give ...`) | op |
+| `customdisc.list` | List the custom music discs (`/customdisc list`) | op |
+| `customdisc.delete` | Delete a custom music disc (`/customdisc delete ...`) | op |
+| `customdisc.info` | Show details of the custom music disc you are holding (`/customdisc info`) | op |
+| `customdisc.updatedep` | Update the Deno and yt-dlp dependencies (`/customdisc updatedep`) | op |
+| `customdisc.admin` | Gives access to **all** the above permissions | op |
+
+> Example with LuckPerms to let a specific player create discs without giving full admin:
+> ```
+> /lp user <player> permission set customdisc.create true
+> /lp user <player> permission set customdisc.list true
+> ```
 
 ## Usage Modes
 The plugin offers **three modes of use**, depending on your setup and preferences:

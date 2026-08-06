@@ -1,5 +1,5 @@
-## 1.21-1.21.8 URLCustomDiscs plugin (+ server resource pack)
-Last updated on November 26, 2025.
+## 1.21-26.2 URLCustomDiscs plugin (+ server resource pack)
+Last updated on August 6, 2026.
 
 [![Modrinth Downloads Badge](https://img.shields.io/modrinth/dt/9dkRl54Z?style=for-the-badge&logo=modrinth&color=%2300AF5C&link=https%3A%2F%2Fmodrinth.com%2Fplugin%2Furl-custom-discs)](https://modrinth.com/plugin/url-custom-discs) [![Github Downloads Badge](https://img.shields.io/github/downloads/TheoDgb/URLCustomDiscs/total?label=Downloads&style=for-the-badge&logo=github&color=blue&link=https://github.com/TheoDgb/URLCustomDiscs)](https://github.com/TheoDgb/URLCustomDiscs)
 
@@ -16,7 +16,7 @@ Additionally, vanilla commands such as `/playsound` and `/stopsound` work with t
 
 **Important**: For non-YouTube URLs, make sure to use a direct URL without any parameters (such as playlist, timecode, etc.), or you might get an unexpected result.
 
-**Note**: Plugin tested on 1.21-1.21.8 Paper and Arclight servers and currently works on Windows and Linux due to dependencies.
+**Note**: Plugin tested on 1.21-26.2 Paper and Arclight servers and currently works on Windows and Linux due to dependencies.
 
 ## Usage
 <table>
