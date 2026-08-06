@@ -161,7 +161,7 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                     continueDiscCreation(player, input, rawDiscName, audioType);
                 }
                 return true;
-
+            /*
             } catch (MalformedURLException e) { // For MP3 file
                 // If it is not a URL, check if it is an MP3 file in the audio_to_send folder
                 File localMp3 = new File(plugin.getAudioToSendFolder(), input);
@@ -190,6 +190,56 @@ public class CommandURLCustomDiscs implements CommandExecutor {
                         File destFile = new File(plugin.getTempAudioFolder(), input);
                         try { // Move the MP3 file from the audio_to_send folder to the edit_resource_pack/temp_audio folder
                             Files.move(localMp3.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        } catch (IOException e1) {
+                            plugin.getLogger().severe("Exception: " + e.getMessage());
+                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to move the MP3 file to temp_audio.");
+                            return true;
+                        }
+                    }
+
+                    continueDiscCreation(player, input, rawDiscName, audioType);
+                } else {
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Invalid input: not a valid URL or .mp3 file in the audio_to_send folder.");
+                    player.sendMessage(ChatColor.GOLD + "Usage: " + ChatColor.YELLOW + "/customdisc help");
+                }
+                return true;
+            }*/
+            } catch (MalformedURLException e) { // For MP3 file
+                // If it is not a URL, check if it is an MP3 file in the audio_to_send folder
+                boolean isSelfHostedOrEditOnly = "self-hosted".equalsIgnoreCase(pluginUsageMode) || "edit-only".equalsIgnoreCase(pluginUsageMode);
+
+                String lowerInput = input.toLowerCase();
+                boolean isMp3 = lowerInput.endsWith(".mp3");
+                boolean isOgg = lowerInput.endsWith(".ogg");
+
+                File localAudioFile = new File(plugin.getAudioToSendFolder(), input);
+                boolean validExtension = isMp3 || (isOgg && isSelfHostedOrEditOnly);
+
+                if (localAudioFile.exists() && localAudioFile.isFile() && validExtension) {
+
+                    if ("api".equalsIgnoreCase(pluginUsageMode)) {
+                        // Check audio file size
+                        long maxSize = 12L * 1024L * 1024L; // 12 MB
+                        if (localAudioFile.length() > maxSize) {
+                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "The audio file exceeds the maximum allowed size of 12MB.");
+                            return true;
+                        }
+                        // Check audio file duration with MP3agic
+                        try {
+                            Mp3File mp3file = new Mp3File(localAudioFile);
+                            long durationSeconds = mp3file.getLengthInSeconds();
+                            if (durationSeconds > 300) { // 5 minutes
+                                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "The audio file exceeds the maximum allowed length of 5 minutes.");
+                                return true;
+                            }
+                        } catch (Exception ex) {
+                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Unable to read the duration of the audio file.");
+                            return true;
+                        }
+                    } else if (isSelfHostedOrEditOnly) {
+                        File destFile = new File(plugin.getTempAudioFolder(), input);
+                        try { // Move the MP3 file from the audio_to_send folder to the edit_resource_pack/temp_audio folder
+                            Files.move(localAudioFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                         } catch (IOException e1) {
                             plugin.getLogger().severe("Exception: " + e.getMessage());
                             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Failed to move the MP3 file to temp_audio.");
