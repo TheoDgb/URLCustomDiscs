@@ -45,5 +45,34 @@ commands:
 
 permissions:
   customdisc.admin:
-    description: Access to admin commands
+    description: Gives access to all URLCustomDiscs commands.
+    default: op
+    children:
+      customdisc.help: true
+      customdisc.create: true
+      customdisc.give: true
+      customdisc.list: true
+      customdisc.delete: true
+      customdisc.info: true
+      customdisc.updatedep: true
+  customdisc.help:
+    description: Allows viewing the URLCustomDiscs help message.
+    default: true
+  customdisc.create:
+    description: Allows creating a custom music disc from a YouTube URL or a local MP3 file.
+    default: op
+  customdisc.give:
+    description: Allows giving yourself a custom music disc.
+    default: op
+  customdisc.list:
+    description: Allows listing the custom music discs.
+    default: op
+  customdisc.delete:
+    description: Allows deleting a custom music disc.
+    default: op
+  customdisc.info:
+    description: Allows showing details of the custom music disc you are holding.
+    default: op
+  customdisc.updatedep:
+    description: Allows updating the Deno and yt-dlp dependencies.
     default: op
